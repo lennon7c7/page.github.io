@@ -1,8 +1,7 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <title>Swiper demo</title>
     <meta
             name="viewport"
@@ -39,7 +38,7 @@
         .swiper-slide {
             text-align: center;
             font-size: 18px;
-            background: #fff;
+            background: black;
 
             /* Center slide text vertically */
             display: -webkit-box;
@@ -58,7 +57,7 @@
 
         .swiper-slide img {
             display: block;
-            width: 100%;
+            /*width: 100%;*/
             height: 100%;
             object-fit: cover;
         }
@@ -69,30 +68,66 @@
 <!-- Swiper -->
 <div class="swiper mySwiper">
     <div class="swiper-wrapper">
-        <div class="swiper-slide"><img src="./images/nature-1.jpg" /></div>
-        <div class="swiper-slide"><img src="./images/nature-2.jpg" /></div>
-        <div class="swiper-slide"><img src="./images/nature-3.jpg" /></div>
-        <div class="swiper-slide"><img src="./images/nature-4.jpg" /></div>
-        <div class="swiper-slide"><img src="./images/nature-5.jpg" /></div>
+        <!--        <div class="swiper-slide"><img src="./images/nature-1.jpg" /></div>-->
+        <!--        <div class="swiper-slide"><img src="./images/nature-2.jpg" /></div>-->
+        <!--        <div class="swiper-slide"><img src="./images/nature-3.jpg" /></div>-->
+        <!--        <div class="swiper-slide"><img src="./images/nature-4.jpg" /></div>-->
+        <!--        <div class="swiper-slide"><img src="./images/nature-5.jpg" /></div>-->
     </div>
     <div class="swiper-pagination"></div>
 </div>
 
 <!-- Swiper JS -->
 <script src="./js/swiper-bundle.min.js"></script>
+<script src="./js/jquery-3.6.1.min.js"></script>
 
 <!-- Initialize Swiper -->
 <script>
+
+    //"D:\Program Files\Google Chrome\Chromebin\chrome.exe" --profile-directory=Default --allow-file-access-from-files
+    let mmJson = [];
+    $.getJSON({
+        url: './json/mm.json',
+        async: false
+    }, function (result) {
+        result.sort(function () {
+            return 0.5 - Math.random()
+        })
+        mmJson = result;
+    });
+
     var swiper = new Swiper(".mySwiper", {
         direction: "vertical",
-        slidesPerView: 1,
-        spaceBetween: 30,
+        // slidesPerView: 1,
+        // spaceBetween: 30,
+        grabCursor : true,
         mousewheel: true,
+        autoHeight: true, //高度随内容变化
+        loop: true,
+        keyboard: {
+            enabled: true,
+            pageUpDown: true,
+        }
         // pagination: {
         //     el: ".swiper-pagination",
         //     clickable: true,
         // },
     });
+
+    //拆分数组
+    mmJsonOfPart = mmJson.splice(0, 10);
+
+    //一部分
+    $.each(mmJsonOfPart, function (i, field) {
+        swiper.appendSlide([`<div class="swiper-slide"><img src="./images/mm/${field}" /></div>`]);
+    });
+
+    //另一部分剩余在原数组中
+    setTimeout(function () {
+        $.each(mmJson, function(i, field){
+            swiper.appendSlide([ `<div class="swiper-slide"><img src="./images/mm/${field}" /></div>` ]);
+        });
+    }, 1000)
 </script>
 </body>
 </html>
