@@ -83,7 +83,6 @@
 
 <!-- Initialize Swiper -->
 <script>
-
     //"D:\Program Files\Google Chrome\Chromebin\chrome.exe" --profile-directory=Default --allow-file-access-from-files
     let mmJson = [];
     $.getJSON({
@@ -98,36 +97,25 @@
 
     var swiper = new Swiper(".mySwiper", {
         direction: "vertical",
-        // slidesPerView: 1,
-        // spaceBetween: 30,
+        virtual: {
+            slides: (function () {
+                let tempHtml = [];
+                $.each(mmJson, function (i, field) {
+                    tempHtml.push(`<div class="swiper-slide"><img src="./images/mm/${field}" /></div>`)
+                });
+                return tempHtml;
+            }()),
+        },
         grabCursor : true,
         mousewheel: true,
         autoHeight: true, //高度随内容变化
-        loop: true,
         keyboard: {
             enabled: true,
             pageUpDown: true,
-        }
-        // pagination: {
-        //     el: ".swiper-pagination",
-        //     clickable: true,
-        // },
+        },
+        parallax : true,
+        effect: 'fade',
     });
-
-    //拆分数组
-    mmJsonOfPart = mmJson.splice(0, 10);
-
-    //一部分
-    $.each(mmJsonOfPart, function (i, field) {
-        swiper.appendSlide([`<div class="swiper-slide"><img src="./images/mm/${field}" /></div>`]);
-    });
-
-    //另一部分剩余在原数组中
-    setTimeout(function () {
-        $.each(mmJson, function(i, field){
-            swiper.appendSlide([ `<div class="swiper-slide"><img src="./images/mm/${field}" /></div>` ]);
-        });
-    }, 1000)
 </script>
 </body>
 </html>
