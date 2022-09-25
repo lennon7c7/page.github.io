@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>swiper list and detail demo</title>
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1"
+    />
+
+    <link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css">
+    <script src="https://unpkg.com/swiper@8/swiper-bundle.min.js"></script>
+    <script src="./js/jquery-3.6.1.min.js"></script>
+
+    <!-- Demo styles -->
+    <style>
+        html,
+        body {
+            position: relative;
+            height: 100%;
+        }
+
+        body {
+            background: black;
+            font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        .swiper {
+            width: 100%;
+            height: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .mySwiperList .swiper-slide {
+            text-align: center;
+            font-size: 18px;
+            background: #fff;
+            height: calc((100%) / 3);
+
+            /* Center slide text vertically */
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-pack: center;
+            -ms-flex-pack: center;
+            -webkit-justify-content: center;
+            justify-content: center;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+        }
+
+
+        .mySwiperList .swiper-slide img {
+            display: block;
+            /*width: 100px;*/
+            /*height: 100px;*/
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+
+
+        .mySwiper .swiper-slide {
+            text-align: center;
+            font-size: 18px;
+            background: black;
+
+            /* Center slide text vertically */
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-pack: center;
+            -ms-flex-pack: center;
+            -webkit-justify-content: center;
+            justify-content: center;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+        }
+
+        .mySwiper .swiper-slide img {
+            display: block;
+            /*width: 100%;*/
+            height: 100%;
+            object-fit: cover;
+        }
+
+    </style>
+</head>
+
+<body>
+<!-- Swiper -->
+<div class="swiper mySwiperList">
+    <div class="swiper-wrapper"></div>
+</div>
+
+<div class="swiper mySwiper" style="display: none">
+    <div class="swiper-wrapper"></div>
+</div>
+
+<!-- Swiper JS -->
+<!--<script src="./js/swiper-bundle.min.js"></script>-->
+
+<!-- Initialize Swiper -->
+<script>
+    let mmJson = [];
+    $.getJSON({
+        url: './json/mm.json',
+        async: false
+    }, function (result) {
+        result.sort(function () {
+            return 0.5 - Math.random()
+        })
+        mmJson = result;
+    });
+
+    let keyEsc = 27
+    let keyLeft = 37
+    let keyUp = 38
+    let keyRight = 39
+    let keyDown = 40
+
+    function backToList() {
+        $('.mySwiper').hide()
+        $('.mySwiperList').css('height', '100%').css('width', '100%')
+    }
+
+    function intoDetail(clickedIndex) {
+        $('.mySwiperList').css('height', '0').css('width', '0')
+        $('.mySwiper').show()
+
+        if (clickedIndex !== undefined) {
+            mySwiper.slideTo(swiper.clickedIndex)
+        }
+    }
+
+    var swiper = new Swiper('.mySwiperList', {
+        // direction: "vertical",
+        slidesPerView: 4,
+        slidesPerGroup: 12,
+        grid: {
+            fill: 'column',
+            rows: 3,
+        },
+        spaceBetween: 0,
+        grabCursor : true,
+        mousewheel: true,
+        keyboard: {
+            enabled: true,
+            pageUpDown: true,
+        },
+        on: {
+            tap: function (swiper, event) {
+                // console.log('swiper,event: ', swiper, event)
+
+                // try to change to detail, but not work
+                // $('.mySwiperList .swiper-wrapper').css('width', 'unset')
+                // $('.mySwiperList .swiper-slide').css('height', '100%')
+                // swiper.slidesPerView = 1;
+                // swiper.slidesPerGroup = 1;
+                // swiper.grid.rows = 1;
+                //
+                // $('.mySwiperList .swiper-slide').css('width', '100%')
+
+                intoDetail(swiper.clickedIndex)
+            }
+        },
+    });
+
+    var mySwiper = new Swiper('.mySwiper', {
+        slidesPerView: 1,
+        // direction: "vertical",
+        virtual: {
+            slides: (function () {
+                let tempHtml = [];
+                $.each(mmJson, function (i, field) {
+
+                    // if (i > 2) {
+                    //     return
+                    // }
+
+                    tempHtml.push(`<div class="swiper-slide"><img src="./images/mm/${field}" /></div>`)
+                });
+                return tempHtml;
+            }()),
+            cache: false, //关闭缓存
+
+        },
+        grabCursor : true,
+        mousewheel: true,
+        autoHeight: true, //高度随内容变化
+        keyboard: {
+            enabled: true,
+            pageUpDown: true,
+        },
+        // touchAngle : 10,
+        on:{
+            keyPress: function(event, keyboard){
+                switch (keyboard) {
+                    case keyEsc:
+                        backToList()
+                        break;
+                }
+            },
+            // touchMove: function(swiper,event){
+            //     //你的事件
+            //     console.log('swiper,event: ', swiper, event)
+            // },
+            touchMoveOpposite(swiper,event){
+                if (event.width === 50 && event.height === 50 && event.pressure === 0.5) {
+                    backToList()
+                }
+                    // console.log('swiper,event: ', swiper, event)
+            },
+        },
+        parallax : true,
+        effect: 'fade',
+    });
+
+    let tempHtml = [];
+    $.each(mmJson, function (i, field) {
+        tempHtml.push(`<div class="swiper-slide"><img src="./images/mm/${field}" /></div>`)
+    });
+    swiper.appendSlide(tempHtml);  //插入Slide 数组
+    // swiper.slideTo(2)
+
+
+</script>
+</body>
+</html>
