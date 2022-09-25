@@ -69,7 +69,7 @@
 
 
 
-        .mySwiper .swiper-slide {
+        .mySwiperDetail .swiper-slide {
             text-align: center;
             font-size: 18px;
             background: black;
@@ -89,7 +89,7 @@
             align-items: center;
         }
 
-        .mySwiper .swiper-slide img {
+        .mySwiperDetail .swiper-slide img {
             display: block;
             /*width: 100%;*/
             height: 100%;
@@ -105,7 +105,7 @@
     <div class="swiper-wrapper"></div>
 </div>
 
-<div class="swiper mySwiper" style="display: none">
+<div class="swiper mySwiperDetail" style="display: none">
     <div class="swiper-wrapper"></div>
 </div>
 
@@ -114,17 +114,6 @@
 
 <!-- Initialize Swiper -->
 <script>
-    let mmJson = [];
-    $.getJSON({
-        url: './json/mm.json',
-        async: false
-    }, function (result) {
-        result.sort(function () {
-            return 0.5 - Math.random()
-        })
-        mmJson = result;
-    });
-
     let keyEsc = 27
     let keyLeft = 37
     let keyUp = 38
@@ -132,20 +121,20 @@
     let keyDown = 40
 
     function backToList() {
-        $('.mySwiper').hide()
+        $('.mySwiperDetail').hide()
         $('.mySwiperList').css('height', '100%').css('width', '100%')
     }
 
     function intoDetail(clickedIndex) {
         $('.mySwiperList').css('height', '0').css('width', '0')
-        $('.mySwiper').show()
+        $('.mySwiperDetail').show()
 
         if (clickedIndex !== undefined) {
-            mySwiper.slideTo(swiper.clickedIndex)
+            mySwiperDetail.slideTo(mySwiperList.clickedIndex)
         }
     }
 
-    var swiper = new Swiper('.mySwiperList', {
+    var mySwiperList = new Swiper('.mySwiperList', {
         // direction: "vertical",
         slidesPerView: 4,
         slidesPerGroup: 12,
@@ -178,28 +167,15 @@
         },
     });
 
-    var mySwiper = new Swiper('.mySwiper', {
+    var mySwiperDetail = new Swiper('.mySwiperDetail', {
         slidesPerView: 1,
         // direction: "vertical",
         virtual: {
-            slides: (function () {
-                let tempHtml = [];
-                $.each(mmJson, function (i, field) {
-
-                    // if (i > 2) {
-                    //     return
-                    // }
-
-                    tempHtml.push(`<div class="swiper-slide"><img src="./images/mm/${field}" /></div>`)
-                });
-                return tempHtml;
-            }()),
             cache: false, //关闭缓存
-
         },
         grabCursor : true,
         mousewheel: true,
-        autoHeight: true, //高度随内容变化
+        // autoHeight: true, //高度随内容变化
         keyboard: {
             enabled: true,
             pageUpDown: true,
@@ -228,14 +204,22 @@
         effect: 'fade',
     });
 
-    let tempHtml = [];
-    $.each(mmJson, function (i, field) {
-        tempHtml.push(`<div class="swiper-slide"><img src="./images/mm/${field}" /></div>`)
+
+    $.getJSON({
+        url: './json/mm.json',
+    }, function (result) {
+        // result.sort(function () {
+        //     return 0.5 - Math.random()
+        // })
+
+        let tempHtml = [];
+        $.each(result, function (i, field) {
+            tempHtml.push(`<div class="swiper-slide"><img src="./images/mm/${field}" /></div>`)
+        });
+        mySwiperList.appendSlide(tempHtml);  //插入Slide 数组
+
+        mySwiperDetail.virtual.appendSlide(tempHtml);  //插入Slide 数组
     });
-    swiper.appendSlide(tempHtml);  //插入Slide 数组
-    // swiper.slideTo(2)
-
-
 </script>
 </body>
 </html>
