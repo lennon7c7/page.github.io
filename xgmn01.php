@@ -109,7 +109,7 @@ function downloadImg($url, $filepath, $filename)
         }
     }
 
-    if (file_exists($filename_path)) {
+    if (file_exists($filename_path) && filesize($filename_path) > 0) {
         return;
     }
 
