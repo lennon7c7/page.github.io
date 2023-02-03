@@ -7,6 +7,7 @@ set_time_limit(0);
 
 
 include './include/simple_html_dom.php';
+include './include/common.php';
 
 $filepath_name = str_replace('.php', '', basename(__FILE__));
 $filepath = "./images/$filepath_name/";
@@ -18,7 +19,7 @@ if (empty($html_dom)) {
     return;
 }
 
-foreach ($html_dom->find('.widget-title a') as $element) {
+foreach ($html_dom->find('.widget-title a') as $key => $element) {
     if (empty($element->href)) {
         continue;
     }
@@ -30,6 +31,7 @@ foreach ($html_dom->find('.widget-title a') as $element) {
         continue;
     }
 
+    $pre_index = 1;
     foreach ($html_dom2->find('.pagination a') as $element2) {
         if (empty($element2->href)) {
             continue;
@@ -53,65 +55,16 @@ foreach ($html_dom->find('.widget-title a') as $element) {
             $new_filepath = "$filepath$element_img->alt/";
             $new_filepath = str_replace('Xgyw.Net_', '', $new_filepath);
 
-            $new_filename = basename($new_img_url);
+            $new_filename = $pre_index . '-' . basename($new_img_url);
+            $pre_index++;
 
             downloadImg($new_img_url, $new_filepath, $new_filename);
         }
     }
-}
 
-
-/**
- * @param string $url
- * @return string
- */
-function get_curl($url)
-{
-    $curl = curl_init();
-
-    curl_setopt_array($curl, [
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'GET',
-
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.98 Safari/537.36',
-    ]);
-
-    $response = curl_exec($curl);
-
-    curl_close($curl);
-
-    return $response;
-}
-
-/**
- * @param string $url
- * @param string $filepath
- * @param string $filename
- * @return void
- */
-function downloadImg($url, $filepath, $filename)
-{
-    $filename_path = "$filepath$filename";
-
-    if (!is_dir($filepath)) {
-        $res = mkdir($filepath, 0777, true);
-        if (!$res) {
-            echo "目录 $filepath 创建失败" . PHP_EOL;
-            return;
-        }
-    }
-
-    if (file_exists($filename_path) && filesize($filename_path) > 0) {
-        return;
-    }
-
-    file_put_contents($filename_path, file_get_contents($url));
+    // todo dev fast
+//    break;
+//    if ($key > 0) {
+//        break;
+//    }
 }
