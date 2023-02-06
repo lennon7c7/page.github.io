@@ -66,7 +66,8 @@ function downloadImg($url, $filename)
     file_put_contents($filename, $file_content);
     $filename = covertImage($filename);
     resizeImageToEvenNumber($filename);
-    cleanExifInfo($filename);
+    deleteBottomWatermarkImage($filename);
+//    cleanExifInfo($filename);
 }
 
 /**
@@ -320,7 +321,7 @@ function deleteTopWatermarkImage($filename, $watermark_px)
  * @param int $watermark_px 水印高度
  * @return void
  */
-function deleteBottomWatermarkImage($filename, $watermark_px)
+function deleteBottomWatermarkImage($filename, $watermark_px = 100)
 {
     $ext = explode('.', $filename);
     $ext = $ext[count($ext) - 1];
@@ -350,7 +351,7 @@ function deleteBottomWatermarkImage($filename, $watermark_px)
     $dst_image = imagecreatetruecolor($dst_width, $dst_height);
     imagecopyresized($dst_image, $src_image, 0, 0, 0, 0, $src_width, $src_height, $src_width, $src_height);
 
-    imagejpeg($dst_image, __FUNCTION__ . "-$filename", 100);
+    imagejpeg($dst_image, $filename, 100);
 }
 
 /**
