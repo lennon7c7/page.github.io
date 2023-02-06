@@ -6,7 +6,9 @@
 set_time_limit(0);
 
 
-$filepath = './images/bingimg/';
+include './include/common.php';
+
+$filepath = './images/bingimg/all/';
 $url = 'https://www.bingimg.cn/list9999999999999999';
 $haystack = get_curl($url);
 if (empty($haystack)) {
@@ -78,29 +80,4 @@ function get_curl($url)
     curl_close($curl);
 
     return $response;
-}
-
-/**
- * @param string $url
- * @param string $filepath
- * @param string $filename
- * @return void
- */
-function downloadImg($url, $filepath, $filename)
-{
-    $filename_path = "$filepath$filename";
-
-    if (!is_dir($filepath)) {
-        $res = mkdir($filepath, 0777, true);
-        if (!$res) {
-            echo "目录 $filepath 创建失败" . PHP_EOL;
-            return;
-        }
-    }
-
-    if (file_exists($filename_path) && filesize($filename_path) > 0) {
-        return;
-    }
-
-    file_put_contents($filename_path, file_get_contents($url));
 }

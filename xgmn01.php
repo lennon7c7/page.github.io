@@ -19,41 +19,54 @@ if (empty($html_dom)) {
     return;
 }
 
-foreach ($html_dom->find('.widget-title a') as $key => $element) {
-    if (empty($element->href)) {
+foreach ($html_dom->find('.widget-title a') as $key => $tag_a) {
+    if (empty($tag_a->href)) {
         continue;
     }
 
-    echo $element->href . PHP_EOL;
-    $html_dom2 = file_get_html($element->href);
+    echo $tag_a->href . PHP_EOL;
+    if (!empty($tag_a->title) && is_dir("$filepath$tag_a->title")) {
+        continue;
+    }
+
+    $html_dom2 = file_get_html($tag_a->href);
     if (empty($html_dom2)) {
         echo 'empty($html_dom2)' . PHP_EOL;
         continue;
     }
 
-    $pre_index = 1;
-    foreach ($html_dom2->find('.pagination a') as $element2) {
-        if (empty($element2->href)) {
+    $detail_urls = [];
+    foreach ($html_dom2->find('.pagination a') as $tag_a_2) {
+        if (empty($tag_a_2->href)) {
             continue;
         }
 
-        echo "  $pre$element2->href" . PHP_EOL;
-        $html_dom3 = file_get_html("$pre$element2->href");
+        $detail_urls[] = "$pre$tag_a_2->href";
+    }
+    $detail_urls = array_unique($detail_urls);
+
+    $pre_index = 1;
+    foreach ($detail_urls as $detail_url) {
+        if (empty($detail_url)) {
+            continue;
+        }
+
+        echo "  $detail_url" . PHP_EOL;
+        $html_dom3 = file_get_html($detail_url);
         if (empty($html_dom3)) {
             echo 'empty($html_dom3)' . PHP_EOL;
             continue;
         }
 
-        foreach ($html_dom3->find('.article-content img') as $element_img) {
-            if (empty($element_img->src)) {
+        foreach ($html_dom3->find('.article-content img') as $tag_img) {
+            if (empty($tag_img->src)) {
                 continue;
             }
 
-            $new_img_url = "$pre$element_img->src";
+            $new_img_url = "$pre$tag_img->src";
             echo "    $new_img_url" . PHP_EOL;
 
-            $new_filepath = "$filepath$element_img->alt/";
-            $new_filepath = str_replace('Xgyw.Net_', '', $new_filepath);
+            $new_filepath = "$filepath$tag_a->title/";
 
             $new_filename = $pre_index . '-' . basename($new_img_url);
             $pre_index++;
@@ -61,10 +74,4 @@ foreach ($html_dom->find('.widget-title a') as $key => $element) {
             downloadImg($new_img_url, $new_filepath, $new_filename);
         }
     }
-
-    // todo dev fast
-//    break;
-//    if ($key > 0) {
-//        break;
-//    }
 }
