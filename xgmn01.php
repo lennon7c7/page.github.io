@@ -69,9 +69,10 @@ foreach ($html_dom->find('.widget-title a') as $key => $tag_a) {
             $new_filepath = "$filepath$tag_a->title/";
 
             $new_filename = $pre_index . '-' . basename($new_img_url);
+            $filename = "$new_filepath$new_filename";
             $pre_index++;
 
-            downloadImg($new_img_url, $new_filepath, $new_filename);
+            downloadImg($new_img_url, $filename);
         }
     }
 }

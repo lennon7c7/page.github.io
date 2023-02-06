@@ -48,7 +48,7 @@ for ($i = 1; $i <= $max; $i++) {
         $filename = str_replace('https://cn.bing.com/th?id=', '', $new_img_url);
         $filename = str_replace('https://www.bingimg.cn/down/', '', $filename);
 
-        downloadImg($new_img_url, $filepath, $filename);
+        downloadImg($new_img_url, "$filepath$filename");
     }
 }
 

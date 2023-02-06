@@ -32,13 +32,12 @@ function curl_get($url)
 
 /**
  * @param string $url
- * @param string $filepath
  * @param string $filename
  * @return void
  */
-function downloadImg($url, $filepath, $filename)
+function downloadImg($url, $filename)
 {
-    $filename_path = "$filepath$filename";
+    $filepath = dirname($filename);
 
     if (!is_dir($filepath)) {
         $res = mkdir($filepath, 0777, true);
@@ -48,7 +47,7 @@ function downloadImg($url, $filepath, $filename)
         }
     }
 
-    if (file_exists($filename_path) && filesize($filename_path) > 0) {
+    if (file_exists($filename) && filesize($filename) > 0) {
         return;
     }
 
@@ -64,8 +63,10 @@ function downloadImg($url, $filepath, $filename)
         return;
     }
 
-    file_put_contents($filename_path, $file_content);
-    cleanExifInfo($filename_path);
+    file_put_contents($filename, $file_content);
+    $filename = covertImage($filename);
+    resizeImageToEvenNumber($filename);
+    cleanExifInfo($filename);
 }
 
 /**
@@ -154,11 +155,13 @@ function getInputImg()
                 $temp_dir2[] = $dir3;
             }
 
-            $temp_dir1[$file2] = $temp_dir2;
+            if (!empty($temp_dir2)) {
+                $temp_dir1[$dir2] = $temp_dir2;
+            }
         }
 
         if (!empty($temp_dir1)) {
-            $input_file[$file1] = $temp_dir1;
+            $input_file[$dir1] = $temp_dir1;
         }
     }
 
@@ -183,7 +186,7 @@ function isImgFileExt($filename)
 }
 
 /**
- * 重置图片文件大小
+ * 重置图片尺寸
  * @param string $filename 文件名
  * @param string $dst_width 修改后最大宽度
  * @param string $dst_height 修改后最大高度
@@ -217,6 +220,59 @@ function resizeImage($filename, $dst_width, $dst_height)
     imagecopyresized($dst_image, $src_image, 0, 0, 0, 0, $dst_width, $dst_height, $src_width, $src_height);
 
     imagejpeg($dst_image, $filename, 100);
+}
+
+/**
+ * 修改图片尺寸成能够被2所整除的整数
+ * @param string $filename 文件名
+ * @return void
+ */
+function resizeImageToEvenNumber($filename)
+{
+    list($width, $height, $type, $attr) = getimagesize($filename);
+
+    $width_not_divisible_by_2 = false;
+    if ($width % 2 != 0) {
+        $width_not_divisible_by_2 = true;
+    }
+
+    $height_not_divisible_by_2 = false;
+    if ($height % 2 != 0) {
+        $height_not_divisible_by_2 = true;
+    }
+
+    if ($width_not_divisible_by_2 || $height_not_divisible_by_2) {
+        if ($width_not_divisible_by_2) {
+            $width--;
+        }
+
+        if ($height_not_divisible_by_2) {
+            $height--;
+        }
+
+        resizeImage($filename, $width, $height);
+    }
+}
+
+/**
+ * 序列化某目录下的jpg文件
+ * @param string $dir
+ * @return void
+ */
+function serializeJpgFilename($dir)
+{
+    $temp = date('/temp-YmdHis-');
+    $files = glob("$dir/*.jpg");
+    foreach ($files as $key => $file) {
+        $new_file = dirname($file) . $temp . ($key + 1) . '.jpg';
+        rename($file, $new_file);
+    }
+
+    $files = glob("$dir/*.jpg");
+    foreach ($files as $key => $file) {
+        $new_file = dirname($file) . '/' . ($key + 1) . '.jpg';
+        rename($file, $new_file);
+    }
 }
 
 /**
@@ -383,13 +439,17 @@ function getPCRectangle($file_list)
     $width = 160;
     $height = 90;
     foreach ($file_list as $filename) {
-        if (empty($filename['width'])) {
+        $src_image = imagecreatefromjpeg($filename);
+        $src_width = imagesx($src_image);
+        $src_height = imagesy($src_image);
+
+        if (empty($src_width)) {
             continue;
         }
 
-        if ($filename['width'] > $width) {
-            $width = $filename['width'];
-            $height = $filename['height'];
+        if ($src_width > $width) {
+            $width = $src_width;
+            $height = $src_height;
         }
     }
 
@@ -419,13 +479,17 @@ function getPhoneRectangle($file_list)
     $width = 90;
     $height = 160;
     foreach ($file_list as $filename) {
-        if (empty($filename['height'])) {
+        $src_image = imagecreatefromjpeg($filename);
+        $src_width = imagesx($src_image);
+        $src_height = imagesy($src_image);
+
+        if (empty($src_height)) {
             continue;
         }
 
-        if ($filename['height'] > $height) {
-            $height = $filename['height'];
-            $width = $filename['width'];
+        if ($src_height > $height) {
+            $height = $src_height;
+            $width = $src_width;
         }
     }
 
