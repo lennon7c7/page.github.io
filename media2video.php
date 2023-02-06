@@ -23,7 +23,7 @@ foreach ($input_file as $dir => $value) {
 
         list($max_width, $max_height) = getPCRectangle($files);
         serializeJpgFilename($dir2);
-        $input_img_template = $dir2 . '/%1d.jpg';
+        $input_img_template = $dir2 . '/%04d.jpg';
         $video_output = "$video_output_path.mp4";
         if (!file_exists($video_output)) {
             // -framerate 1/2 每张图显示2s

@@ -264,13 +264,13 @@ function serializeJpgFilename($dir)
     $temp = date('/temp-YmdHis-');
     $files = glob("$dir/*.jpg");
     foreach ($files as $key => $file) {
-        $new_file = dirname($file) . $temp . ($key + 1) . '.jpg';
+        $new_file = dirname($file) . $temp . sprintf('%04d', $key + 1) . '.jpg';
         rename($file, $new_file);
     }
 
     $files = glob("$dir/*.jpg");
     foreach ($files as $key => $file) {
-        $new_file = dirname($file) . '/' . ($key + 1) . '.jpg';
+        $new_file = dirname($file) . '/' . sprintf('%04d', $key + 1) . '.jpg';
         rename($file, $new_file);
     }
 }
