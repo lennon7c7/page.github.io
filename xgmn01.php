@@ -73,6 +73,7 @@ foreach ($html_dom->find('.widget-title a') as $key => $tag_a) {
             $pre_index++;
 
             downloadImg($new_img_url, $filename);
+            ocr_xgmn01($filename);
         }
     }
 }

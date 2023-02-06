@@ -277,6 +277,103 @@ function serializeJpgFilename($dir)
 }
 
 /**
+ * 图像 - 文字识别
+ * @param string $filename
+ * @return void
+ */
+function ocr_xgmn01($filename)
+{
+    if (!file_exists($filename)) {
+        return;
+    }
+
+    list($src_w, $src_h) = getimagesize($filename);
+
+    $zoom = 3;
+    $dst_w = bcdiv($src_w, $zoom);
+    $dst_h = bcdiv($src_h, $zoom);
+
+    $dst_scale = $dst_h / $dst_w; // 目标图像长宽比
+    $src_scale = $src_h / $src_w; // 原图长宽比
+
+    if ($src_scale >= $dst_scale) {  // 过高
+        $w = intval($src_w);
+        $h = intval($dst_scale * $w);
+
+        $x = 0;
+        $y = ($src_h - $h) / 3;
+    } else { // 过宽
+        $h = intval($src_h);
+        $w = intval($h / $dst_scale);
+
+        $x = ($src_w - $w) / 2;
+        $y = 0;
+    }
+
+    // 剪裁
+    $source = imagecreatefromjpeg($filename);
+    $croped = imagecreatetruecolor($w, $h);
+    imagecopy($croped, $source, 0, 0, $x, $y, $src_w, $src_h);
+
+    // 缩放
+    $scale = $dst_w / $w;
+    $target = imagecreatetruecolor($dst_w, $dst_h);
+    $final_w = intval($w * $scale);
+    $final_h = intval($h * $scale);
+    imagecopyresampled($target, $croped, 0, 0, 0, 0, $final_w, $final_h, $w, $h);
+
+    // 保存
+    $timestamp = time();
+    $temp_file = "$timestamp.jpg";
+    imagejpeg($target, $temp_file);
+    imagedestroy($target);
+
+    $img = file_get_contents($temp_file);
+    $base64 = base64_encode($img);
+    unlink($temp_file);
+
+    $post_field = ['image' => $base64];
+    $curl = curl_init();
+
+    curl_setopt_array($curl, [
+        CURLOPT_URL => 'https://www.paddlepaddle.org.cn/paddlehub-api/image_classification/chinese_ocr_db_crnn_mobile',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => json_encode($post_field),
+
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.98 Safari/537.36',
+    ]);
+
+    $response = curl_exec($curl);
+    curl_close($curl);
+
+    if (empty($response)) {
+        return;
+    }
+
+    $response_array = json_decode($response, true);
+    if (empty($response_array['result'][0]['data'])) {
+        return;
+    }
+
+    $matchWatermark = ['www.xgyw.net'];
+    foreach ($response_array['result'][0]['data'] as $value) {
+        if (in_array(strtolower($value['text']), $matchWatermark)) {
+            unlink($filename);
+            return;
+        }
+    }
+}
+
+
+/**
  * 删除顶部带水印的X轴部分
  * @param string $filename 文件名
  * @param int $watermark_px 水印高度
