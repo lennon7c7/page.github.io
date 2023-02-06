@@ -52,8 +52,19 @@ function downloadImg($url, $filepath, $filename)
         return;
     }
 
-    file_put_contents($filename_path, file_get_contents($url));
+    $opts = [
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 5,
+        ]
+    ];
+    $count = 0;
+    while ($count < 3 && ($file_content = @file_get_contents($url, false, stream_context_create($opts))) === FALSE) $count++;
+    if (empty($file_content)) {
+        return;
+    }
 
+    file_put_contents($filename_path, $file_content);
     cleanExifInfo($filename_path);
 }
 
