@@ -66,6 +66,7 @@ function downloadImg($url, $filename)
     file_put_contents($filename, $file_content);
     $filename = covertImage($filename);
     resizeImageToEvenNumber($filename);
+    deleteTopWatermarkImage($filename);
     deleteBottomWatermarkImage($filename);
 //    cleanExifInfo($filename);
 }
@@ -379,7 +380,7 @@ function ocr_xgmn01($filename)
  * @param int $watermark_px 水印高度
  * @return void
  */
-function deleteTopWatermarkImage($filename, $watermark_px)
+function deleteTopWatermarkImage($filename, $watermark_px = 100)
 {
     $ext = explode('.', $filename);
     $ext = $ext[count($ext) - 1];
@@ -409,7 +410,7 @@ function deleteTopWatermarkImage($filename, $watermark_px)
     $dst_image = imagecreatetruecolor($dst_width, $dst_height);
     imagecopyresized($dst_image, $src_image, 0, 0, $watermark_px, $watermark_px, $src_width, $src_height, $src_width, $src_height);
 
-    imagejpeg($dst_image, __FUNCTION__ . "-$filename", 100);
+    imagejpeg($dst_image, $filename, 100);
 }
 
 /**
@@ -459,7 +460,7 @@ function deleteBottomWatermarkImage($filename, $watermark_px = 100)
 function covertImage($old_filename)
 {
     $filename_without_ext = pathinfo($old_filename, PATHINFO_FILENAME);
-    $new_filename = "$filename_without_ext.jpg";
+    $new_filename = dirname($old_filename) . "/$filename_without_ext.jpg";
 
     $ext = explode('.', $old_filename);
     $ext = $ext[count($ext) - 1];

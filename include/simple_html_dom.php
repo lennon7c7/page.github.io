@@ -45,6 +45,20 @@ defined('DEFAULT_SPAN_TEXT') || define('DEFAULT_SPAN_TEXT', ' ');
 defined('MAX_FILE_SIZE') || define('MAX_FILE_SIZE', 600000);
 define('HDOM_SMARTY_AS_TEXT', 1);
 
+/**
+ * @param $url
+ * @param $use_include_path
+ * @param $context
+ * @param $offset
+ * @param $maxLen
+ * @param $lowercase
+ * @param $forceTagsClosed
+ * @param $target_charset
+ * @param $stripRN
+ * @param $defaultBRText
+ * @param $defaultSpanText
+ * @return $this|false|simple_html_dom
+ */
 function file_get_html(
 	$url,
 	$use_include_path = false,
@@ -506,7 +520,7 @@ class simple_html_dom_node
 		return $ret . $this->_[HDOM_INFO_ENDSPACE] . '>';
 	}
 
-	function find($selector, $idx = null, $lowercase = false)
+	function  find($selector, $idx = null, $lowercase = false)
 	{
 		$selectors = $this->parse_selector($selector);
 		if (($count = count($selectors)) === 0) { return array(); }
@@ -1387,7 +1401,10 @@ class simple_html_dom_node
 
 class simple_html_dom
 {
-	public $root = null;
+    /**
+     * @var simple_html_dom_node
+     */
+    public $root = null;
 	public $nodes = array();
 	public $callback = null;
 	public $lowercase = false;
@@ -1579,6 +1596,15 @@ class simple_html_dom
 
 	function find($selector, $idx = null, $lowercase = false)
 	{
+		return $this->root->find($selector, $idx, $lowercase);
+	}
+
+	function findFirst($selector, $idx = null, $lowercase = false)
+	{
+        if (!empty($this->root->find($selector, $idx, $lowercase))) {
+            return $this->root->find($selector, $idx, $lowercase)[0];
+        }
+
 		return $this->root->find($selector, $idx, $lowercase);
 	}
 
