@@ -549,8 +549,8 @@ function getPCRectangle($file_list)
     $max_width = 2560;
     $max_height = 1440;
 
-    $mix_width = 16;
-    $mix_height = 9;
+    $mix_width = 160;
+    $mix_height = 90;
 
     $width = 160;
     $height = 90;
@@ -589,8 +589,8 @@ function getPhoneRectangle($file_list)
     $max_width = 1440;
     $max_height = 2560;
 
-    $mix_width = 9;
-    $mix_height = 16;
+    $mix_width = 90;
+    $mix_height = 160;
 
     $width = 90;
     $height = 160;
