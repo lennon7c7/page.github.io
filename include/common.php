@@ -632,3 +632,68 @@ function cleanExifInfo($filename)
         print_r($out);
     }
 }
+
+/**
+ * 统一图片尺寸
+ * @param string $dir 图片目录
+ * @return void
+ */
+function uniformImageSizeByDir($dir)
+{
+    /**
+     * 统一图片尺寸
+     * @param int $canvas_width 画布宽
+     * @param int $canvas_height 画布高
+     * @param string $watermark_filename 水印GDImage
+     * @return void
+     */
+    function uniform_image_size($canvas_width, $canvas_height, $watermark_filename)
+    {
+        // 获取水印图片的宽高
+        list($watermark_width, $watermark_height) = getimagesize($watermark_filename);
+        if ($watermark_width == $canvas_width && $watermark_height == $canvas_width) {
+            return;
+        }
+
+        $canvas = imagecreatetruecolor($canvas_width, $canvas_height);
+
+        // 创建图片的实例
+        $watermark_img = imagecreatefromstring(file_get_contents($watermark_filename));
+
+        if ($canvas_width == $watermark_width) {
+            // 将水印图片水平居中
+            imagecopy($canvas, $watermark_img, 0, $canvas_height / 2 - $watermark_height / 2, 0, 0, $watermark_width, $watermark_height);
+        } elseif ($canvas_height == $watermark_height) {
+            // 将水印图片垂直居中
+            imagecopy($canvas, $watermark_img, $canvas_height / 2 - $watermark_height / 2, 0, 0, 0, $watermark_width, $watermark_height);
+        } else {
+            // 将水印图片水平、垂直居中
+            imagecopy($canvas, $watermark_img, $canvas_height / 2 - $watermark_height / 2, $canvas_height / 2 - $watermark_height / 2, 0, 0, $watermark_width, $watermark_height);
+        }
+
+        imagejpeg($canvas, $watermark_filename);
+        imagedestroy($watermark_img);
+        imagedestroy($canvas);
+    }
+
+    $keep_needle = ['jpg'];
+    $files = [];
+    $max_width = 160;
+    $max_height = 90;
+    foreach (scandir($dir) as $file) {
+        $filename_ext = pathinfo($file, PATHINFO_EXTENSION);
+        if (!in_array($filename_ext, $keep_needle)) {
+            continue;
+        }
+
+        $old_filename = "$dir/$file";
+        list($canvas_width, $canvas_height) = getimagesize($old_filename);
+        $max_width = max($max_width, $canvas_width);
+        $max_height = max($max_height, $canvas_height);
+        $files[] = $old_filename;
+    }
+
+    foreach ($files as $file) {
+        uniform_image_size($max_width, $max_height, $file);
+    }
+}
