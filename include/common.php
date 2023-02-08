@@ -264,13 +264,30 @@ function resizeImageToEvenNumber($filename)
 function serializeJpgFilename($dir)
 {
     $temp = date('/temp-YmdHis-');
-    $files = glob("$dir/*.jpg");
+    $keep_needle = ['jpg'];
+    $files = [];
+    foreach (scandir($dir) as $file) {
+        $filename_ext = pathinfo($file, PATHINFO_EXTENSION);
+        if (!in_array($filename_ext, $keep_needle)) {
+            continue;
+        }
+
+        $files[] = "$dir/$file";
+    }
     foreach ($files as $key => $file) {
         $new_file = dirname($file) . $temp . sprintf('%04d', $key + 1) . '.jpg';
         rename($file, $new_file);
     }
 
-    $files = glob("$dir/*.jpg");
+    $files = [];
+    foreach (scandir($dir) as $file) {
+        $filename_ext = pathinfo($file, PATHINFO_EXTENSION);
+        if (!in_array($filename_ext, $keep_needle)) {
+            continue;
+        }
+
+        $files[] = "$dir/$file";
+    }
     foreach ($files as $key => $file) {
         $new_file = dirname($file) . '/' . sprintf('%04d', $key + 1) . '.jpg';
         rename($file, $new_file);
