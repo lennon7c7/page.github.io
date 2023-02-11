@@ -57,6 +57,7 @@ wget \
 yasm \
 ffmpeg \
 exiftool \
+go musl-dev gcc build-base \
 vim && \
 cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
 apk del tzdata && \
