@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 )
@@ -90,6 +92,50 @@ func mrcongDetailPage(url string, page int) {
 		fmt.Println(err)
 		return
 	}
+}
+
+func getImgListFrom(inputPath string) (files []string) {
+	names := []string{".jpg", ".png", ".jpeg"}
+	err := filepath.Walk(inputPath, func(pathFile string, info os.FileInfo, err error) error {
+		if inputPath == pathFile {
+			return nil
+		}
+
+		exists, _ := inArray(path.Ext(pathFile), names)
+		if !exists {
+			return nil
+		}
+
+		files = append(files, pathFile)
+		return nil
+	})
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	return
+}
+
+func inArray(val interface{}, array interface{}) (exists bool, index int) {
+	exists = false
+	index = -1
+
+	switch reflect.TypeOf(array).Kind() {
+	case reflect.Slice:
+		s := reflect.ValueOf(array)
+
+		for i := 0; i < s.Len(); i++ {
+			if reflect.DeepEqual(val, s.Index(i).Interface()) == true {
+				index = i
+				exists = true
+				return
+			}
+		}
+	}
+
+	return
 }
 
 // get current runtime filename without ext
