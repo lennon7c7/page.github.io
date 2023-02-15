@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"os"
+	"os/exec"
 	"path"
 	"runtime"
 	"strings"
@@ -108,4 +109,13 @@ func fileExists(path string) bool {
 	_, err := os.Stat(path)
 
 	return !os.IsNotExist(err)
+}
+
+func unrar(input string, output string) {
+	command := "unrar x -pmrcong.com -inul -y " + input + " " + output
+	_, err := exec.Command("/bin/sh", "-c", command).Output()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
