@@ -43,10 +43,10 @@ func mrcongListPage(url string) {
 		}
 	})
 
-	//nextUrl, _ := doc.Find("head link[rel=next]").Attr("href")
-	//if nextUrl != "" {
-	//	mrcongListPage(nextUrl)
-	//}
+	nextUrl, _ := doc.Find("head link[rel=next]").Attr("href")
+	if nextUrl != "" {
+		mrcongListPage(nextUrl)
+	}
 }
 
 func mrcongDetailPage(url string, page int) {
@@ -71,6 +71,12 @@ func mrcongDetailPage(url string, page int) {
 		}
 	}
 
+	jsonFile := downloadPath + title + ".json"
+	if fileExists(jsonFile) {
+		fmt.Println("---------- no shit ---------- ")
+		os.Exit(0)
+	}
+
 	var mediafireLinkList []string
 	doc.Find("a.shortc-button.medium.green").Each(func(i int, s *goquery.Selection) {
 		mediafireLink, _ := s.Attr("href")
@@ -85,7 +91,7 @@ func mrcongDetailPage(url string, page int) {
 	dataMap["url"] = url
 	dataMap["mediafireLink"] = mediafireLinkList
 	//打开文件
-	file, _ := os.OpenFile(downloadPath+title+".json", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0777)
+	file, _ := os.OpenFile(jsonFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0777)
 	defer file.Close()
 	//创建encoder 数据输出到file中
 	encoder := json.NewEncoder(file)
