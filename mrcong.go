@@ -4,13 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/golang/freetype"
-	"image"
-	"image/color"
-	"image/draw"
-	"image/jpeg"
 	"os"
-	"os/exec"
+	"page.github.io/pkg/file"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -18,7 +13,7 @@ import (
 	"strings"
 )
 
-var baseDownloadJsonPath = "./json/" + getCurrentRuntimeFilename() + "/"
+var baseDownloadJsonPath = "./json/" + file.GetNameWithoutExt() + "/"
 
 func main() {
 	runtime.GOMAXPROCS(4)
@@ -63,7 +58,7 @@ func mrcongDetailPage(url string, page int) {
 	downloadPath = strings.Replace(downloadPath, "-", "/", 2)
 	downloadPath = baseDownloadJsonPath + downloadPath + "/"
 
-	if !fileExists(downloadPath) {
+	if !file.Exists(downloadPath) {
 		err = os.MkdirAll(downloadPath, 0777)
 		if err != nil {
 			fmt.Println(err)
@@ -72,7 +67,7 @@ func mrcongDetailPage(url string, page int) {
 	}
 
 	jsonFile := downloadPath + title + ".json"
-	if fileExists(jsonFile) {
+	if file.Exists(jsonFile) {
 		fmt.Println("---------- no shit ---------- ")
 		os.Exit(0)
 	}
@@ -146,32 +141,4 @@ func inArray(val interface{}, array interface{}) (exists bool, index int) {
 	}
 
 	return
-}
-
-// get current runtime filename without ext
-func getCurrentRuntimeFilename() string {
-	_, fullFilename, _, _ := runtime.Caller(0)
-	//获取文件名带后缀
-	filenameWithSuffix := path.Base(fullFilename)
-	//获取文件后缀
-	fileSuffix := path.Ext(filenameWithSuffix)
-	//获取文件名
-	filenameOnly := strings.TrimSuffix(filenameWithSuffix, fileSuffix)
-
-	return filenameOnly
-}
-
-func fileExists(path string) bool {
-	_, err := os.Stat(path)
-
-	return !os.IsNotExist(err)
-}
-
-func unrar(input string, output string) {
-	command := "unrar x -pmrcong.com -inul -y " + input + " " + output
-	_, err := exec.Command("/bin/sh", "-c", command).Output()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 }

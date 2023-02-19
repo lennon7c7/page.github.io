@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"page.github.io/pkg/file"
 	"path"
 	"runtime"
 	"strings"
@@ -14,7 +15,7 @@ import (
 
 // 一个妹子图片网站
 var domain = "https://www.xgmn01.com"
-var baseDownloadPath = "./images/" + getCurrentRuntimeFilename() + "/"
+var baseDownloadPath = "./images/" + file.GetNameWithoutExt() + "/"
 
 var c chan int
 
@@ -42,7 +43,7 @@ func listPage(url string) {
 		downloadPath += "/" + title
 		downloadPath = baseDownloadPath + downloadPath + "/"
 
-		if fileExists(downloadPath) {
+		if file.Exists(downloadPath) {
 			return
 		}
 
@@ -151,23 +152,4 @@ func downloadImage(url string, filename string) {
 		fmt.Println("      failed save " + url)
 		return
 	}
-}
-
-// get current runtime filename without ext
-func getCurrentRuntimeFilename() string {
-	_, fullFilename, _, _ := runtime.Caller(0)
-	//获取文件名带后缀
-	filenameWithSuffix := path.Base(fullFilename)
-	//获取文件后缀
-	fileSuffix := path.Ext(filenameWithSuffix)
-	//获取文件名
-	filenameOnly := strings.TrimSuffix(filenameWithSuffix, fileSuffix)
-
-	return filenameOnly
-}
-
-func fileExists(path string) bool {
-	_, err := os.Stat(path)
-
-	return !os.IsNotExist(err)
 }
