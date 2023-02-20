@@ -6,6 +6,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/melbahja/got"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -31,7 +32,7 @@ func DownloadMediafireLink() {
 			return nil
 		}
 
-		content, err := os.ReadFile(pathFile)
+		content, err := ioutil.ReadFile(pathFile)
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -90,7 +91,7 @@ func DownloadMediafireLink() {
 			}
 			segments := strings.Split(fileURL.Path, "/")
 			fileName := segments[len(segments)-1]
-			outputFile := "images/" + file.GetNameWithoutExt() + "/" + fileName
+			outputFile := "zip/" + file.GetNameWithoutExt() + "/" + fileName
 
 			if file.Exists(outputFile) {
 				continue
