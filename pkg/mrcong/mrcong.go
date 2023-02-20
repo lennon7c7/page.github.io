@@ -17,6 +17,9 @@ import (
 	"strings"
 )
 
+var domain = "https://mrcong.com"
+var BaseDownloadJsonPath = "./json/" + file.GetNameWithoutExt() + "/"
+
 type jsonData struct {
 	MediafireLink []string
 	Title         string
@@ -114,6 +117,97 @@ func DownloadMediafireLink() {
 	}
 }
 
+func DownloadToJson() {
+	listPage(domain)
+}
+
+func listPage(url string) {
+	fmt.Println(url)
+	doc, err := goquery.NewDocument(url)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	doc.Find(".post-listing .post-box-title a").Each(func(i int, s *goquery.Selection) {
+		detailUrl, _ := s.Attr("href")
+		if detailUrl != "" {
+			detailPage(detailUrl, 0)
+		}
+	})
+
+	nextUrl, _ := doc.Find("head link[rel=next]").Attr("href")
+	if nextUrl != "" {
+		listPage(nextUrl)
+	}
+}
+
+func detailPage(url string, page int) {
+	fmt.Println("  " + url)
+	doc, err := goquery.NewDocument(url)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	title := doc.Find("#crumbs .current").Text()
+
+	downloadPath := doc.Find(".updated").Text()
+	downloadPath = strings.Replace(downloadPath, "-", "/", 2)
+	downloadPath = BaseDownloadJsonPath + downloadPath + "/"
+
+	if !file.Exists(downloadPath) {
+		err = os.MkdirAll(downloadPath, 0777)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	jsonFile := downloadPath + title + ".json"
+	fmt.Println("  " + jsonFile)
+	if file.Exists(jsonFile) {
+		fmt.Println("---------- no shit ---------- ")
+		os.Exit(0)
+	}
+
+	var mediafireLinkList []string
+	doc.Find("a.shortc-button.medium.green").Each(func(i int, s *goquery.Selection) {
+		mediafireLink, _ := s.Attr("href")
+		mediafireLinkList = append(mediafireLinkList, mediafireLink)
+		fmt.Println("    " + mediafireLink)
+	})
+
+	var imgLinkList []string
+	imgLinkList = getDetailPageImgList(url)
+
+	//这里创建一个需要写入的map
+	dataMap := make(map[string]interface{})
+	//将数据写入map
+	dataMap["title"] = title
+	dataMap["updated"] = doc.Find(".updated").Text()
+	dataMap["url"] = url
+	dataMap["mediafireLink"] = mediafireLinkList
+	dataMap["imgLinkList"] = imgLinkList
+	//打开文件
+	outputFile, _ := os.OpenFile(jsonFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0777)
+	defer func(outputFile *os.File) {
+		err := outputFile.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(outputFile)
+	//创建encoder 数据输出到file中
+	encoder := json.NewEncoder(outputFile)
+	//把dataMap的数据encode到file中
+	err = encoder.Encode(dataMap)
+	//异常处理
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
 func FilterInvalidMediafireLink(oldLinks []string) (newLinks []string) {
 	validLinks := []string{"https://www.mediafire.com"}
 	//invalidLinks := []string{"http://shink.me", "http://ouo.io", "http://adf.ly"}
@@ -132,6 +226,29 @@ func FilterInvalidMediafireLink(oldLinks []string) (newLinks []string) {
 		//	}
 		//}
 
+	}
+
+	return
+}
+
+func getDetailPageImgList(detailPage string) (imgList []string) {
+	fmt.Println("    " + detailPage)
+	doc, err := goquery.NewDocument(detailPage)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	doc.Find("#fukie2 img.aligncenter").Each(func(i int, s *goquery.Selection) {
+		val, _ := s.Attr("src")
+		imgList = append(imgList, val)
+		fmt.Println("      " + val)
+	})
+
+	nextDetailPage, _ := doc.Find("head link[rel=next]").Attr("href")
+	if nextDetailPage != "" {
+		temp := getDetailPageImgList(nextDetailPage)
+		imgList = append(imgList, temp...)
 	}
 
 	return
