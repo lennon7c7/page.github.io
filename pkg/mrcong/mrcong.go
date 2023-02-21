@@ -18,7 +18,7 @@ import (
 )
 
 var domain = "https://mrcong.com"
-var BaseDownloadJsonPath = "./json/" + file.GetNameWithoutExt() + "/"
+var BaseDownloadJsonPath = "../../json/" + file.GetNameWithoutExt() + "/"
 
 type jsonData struct {
 	MediafireLink []string
