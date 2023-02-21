@@ -3,6 +3,7 @@ package img
 import (
 	"fmt"
 	"github.com/golang/freetype"
+	"github.com/nfnt/resize"
 	"image"
 	"image/color"
 	"image/draw"
@@ -62,4 +63,65 @@ func MaxImageWidthHeight(canvasWidth int, canvasHeight int, imgFile string) {
 			fmt.Println(err)
 		}
 	}(file)
+}
+
+func GetMaxWidthHeight(files []string) (width int, height int) {
+	for _, tempFile := range files {
+		img, _ := os.Open(tempFile)
+		img1, _ := jpeg.Decode(img)
+
+		if img1.Bounds().Dx() > width {
+			width = img1.Bounds().Dx()
+		}
+
+		if img1.Bounds().Dy() > height {
+			height = img1.Bounds().Dy()
+		}
+	}
+
+	return
+}
+
+func AuthThumbnail(inputFile string, outputFile string) {
+	file, err := os.Open(inputFile)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// decode jpeg into image.Image
+	img1, err := jpeg.Decode(file)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = file.Close()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	maxWidth := 1920
+	maxHeight := 1920
+	m := resize.Thumbnail(uint(maxWidth), uint(maxHeight), img1, resize.Lanczos2)
+
+	out, err := os.Create(outputFile)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer func(out *os.File) {
+		err := out.Close()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}(out)
+
+	// write new image to file
+	err = jpeg.Encode(out, m, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }

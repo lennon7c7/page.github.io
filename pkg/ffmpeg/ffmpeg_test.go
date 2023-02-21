@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// go test -v pkg/ffmpeg/ffmpeg_test.go -run TestImg2Video
 func TestImg2Video(t *testing.T) {
 	input := "../../images/nature-%d.jpg"
 	output := "../../images/test.mp4"

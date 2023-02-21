@@ -1,8 +1,10 @@
 package file
 
 import (
+	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -17,6 +19,24 @@ func GetNameWithoutExt() string {
 	filenameOnly := strings.TrimSuffix(filenameWithSuffix, fileSuffix)
 
 	return filenameOnly
+}
+
+func GetFiles(pathName string) (files []string) {
+	err := filepath.Walk(pathName, func(pathFile string, info os.FileInfo, err error) error {
+		if pathName == pathFile {
+			return nil
+		}
+
+		files = append(files, pathFile)
+		return nil
+	})
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	return
 }
 
 func Exists(path string) bool {
