@@ -9,7 +9,12 @@ import (
 	"image/draw"
 	"image/jpeg"
 	"os"
+	"page.github.io/pkg/array"
+	"page.github.io/pkg/file"
+	"path"
 )
+
+var ExtList = []string{".jpg", ".jpeg", ".png", ".webp"}
 
 // MaxImageWidthHeight 扩张图片宽高
 // 扩张之处以黑色背景填充
@@ -77,6 +82,21 @@ func GetMaxWidthHeight(files []string) (width int, height int) {
 		if img1.Bounds().Dy() > height {
 			height = img1.Bounds().Dy()
 		}
+	}
+
+	return
+}
+
+func GetFiles(pathName string) (files []string) {
+	tempFiles := file.GetFiles(pathName)
+
+	for _, value := range tempFiles {
+		exists, _ := array.IsExists(path.Ext(value), ExtList)
+		if !exists {
+			continue
+		}
+
+		files = append(files, value)
 	}
 
 	return

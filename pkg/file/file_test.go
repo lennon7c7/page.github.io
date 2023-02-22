@@ -19,3 +19,15 @@ func TestGetFileList(t *testing.T) {
 
 	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "end", "----------")
 }
+
+// go test -v pkg/file/file_test.go -run TestSerialRename
+func TestSerialRename(t *testing.T) {
+	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "start", "----------")
+
+	pathName := "../../images/test/1"
+	files := file.GetFiles(pathName)
+
+	file.SerialRename(files)
+
+	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "end", "----------")
+}

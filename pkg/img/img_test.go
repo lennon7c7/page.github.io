@@ -57,7 +57,7 @@ func TestResize(t *testing.T) {
 	//img.AuthThumbnail(input, output)
 
 	pathName := "../../images/test/1"
-	files := file.GetFiles(pathName)
+	files := img.GetFiles(pathName)
 	for _, tempFile := range files {
 		img.AuthThumbnail(tempFile, tempFile)
 	}
@@ -66,6 +66,17 @@ func TestResize(t *testing.T) {
 	for _, tempFile := range files {
 		img.MaxImageWidthHeight(x, y, tempFile)
 	}
+
+	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "end", "----------")
+}
+
+// go test -v pkg/img/img_test.go -run TestRename
+func TestRename(t *testing.T) {
+	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "start", "----------")
+
+	pathName := "../../images/test/1"
+	files := img.GetFiles(pathName)
+	file.SerialRename(files)
 
 	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "end", "----------")
 }

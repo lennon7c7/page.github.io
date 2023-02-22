@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 )
 
 func GetNameWithoutExt() string {
@@ -34,6 +35,35 @@ func GetFiles(pathName string) (files []string) {
 	if err != nil {
 		fmt.Println(err)
 		return
+	}
+
+	return
+}
+
+func SerialRename(files []string) {
+	new := time.Now().Format("20060102150405")
+
+	var tempFiles []string
+	for key, value := range files {
+		fileSuffix := path.Ext(value)
+		newpath := path.Dir(value) + "/" + new + "-" + fmt.Sprintf("%04d", key) + fileSuffix
+		err := os.Rename(value, newpath)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		tempFiles = append(tempFiles, newpath)
+	}
+
+	for key, value := range tempFiles {
+		fileSuffix := path.Ext(value)
+		newpath := path.Dir(value) + "/" + fmt.Sprintf("%04d", key) + fileSuffix
+		err := os.Rename(value, newpath)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
 	}
 
 	return
