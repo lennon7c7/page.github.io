@@ -51,13 +51,13 @@ func MaxImageWidthHeight(canvasWidth int, canvasHeight int, imgFile string) {
 	draw.Draw(rgba, img1.Bounds().Add(offset), img1, image.Point{}, draw.Over)
 
 	// 创建图片
-	file, err := os.Create(imgFile)
+	tempFile, err := os.Create(imgFile)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	// 将图像写入file
-	err = jpeg.Encode(file, rgba, &jpeg.Options{Quality: 100})
+	err = jpeg.Encode(tempFile, rgba, &jpeg.Options{Quality: 100})
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -67,7 +67,7 @@ func MaxImageWidthHeight(canvasWidth int, canvasHeight int, imgFile string) {
 		if err != nil {
 			fmt.Println(err)
 		}
-	}(file)
+	}(tempFile)
 }
 
 func GetMaxWidthHeight(files []string) (width int, height int) {
@@ -103,19 +103,19 @@ func GetFiles(pathName string) (files []string) {
 }
 
 func AuthThumbnail(inputFile string, outputFile string) {
-	file, err := os.Open(inputFile)
+	tempFile, err := os.Open(inputFile)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	// decode jpeg into image.Image
-	img1, err := jpeg.Decode(file)
+	img1, err := jpeg.Decode(tempFile)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	err = file.Close()
+	err = tempFile.Close()
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -138,10 +138,53 @@ func AuthThumbnail(inputFile string, outputFile string) {
 		}
 	}(out)
 
-	// write new image to file
+	// write new image to tempFile
 	err = jpeg.Encode(out, m, nil)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+}
+
+func Cut(inputFile string, outputFile string, outputWidth int, outputHeight int) {
+	rectangle := image.Rect(0, 0, outputWidth, outputHeight)
+	rgba := image.NewRGBA(rectangle)
+
+	img, _ := os.Open(inputFile)
+	defer func(img *os.File) {
+		err := img.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(img)
+	img1, _ := jpeg.Decode(img)
+
+	offsetX := outputWidth/2 - img1.Bounds().Dx()/2
+	offsetY := outputHeight/2 - img1.Bounds().Dy()/2
+	offset := image.Pt(offsetX, offsetY)
+	if outputWidth == img1.Bounds().Dx() {
+		offset = image.Pt(0, offsetY)
+	} else if outputHeight == img1.Bounds().Dy() {
+		offset = image.Pt(offsetX, 0)
+	}
+
+	draw.Draw(rgba, img1.Bounds().Add(offset), img1, image.Point{}, draw.Over)
+
+	tempFile, err := os.Create(outputFile)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = jpeg.Encode(tempFile, rgba, &jpeg.Options{Quality: 70})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer func(file *os.File) {
+		err = file.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(tempFile)
 }

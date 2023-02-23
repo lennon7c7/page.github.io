@@ -70,6 +70,31 @@ func TestResize(t *testing.T) {
 	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "end", "----------")
 }
 
+// go test -v pkg/img/img_test.go -run TestCut
+func TestCut(t *testing.T) {
+	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "start", "----------")
+
+	input := "../../images/test/0013.jpg"
+	output := "../../images/test/0013-.jpg"
+	outputWidth := 720
+	outputHeight := 90
+	img.Cut(input, output, outputWidth, outputHeight)
+
+	input = "../../images/test/0031.jpg"
+	output = "../../images/test/0031-.jpg"
+	outputWidth = 720
+	outputHeight = 90
+	img.Cut(input, output, outputWidth, outputHeight)
+
+	input = "../../images/test/0036.jpg"
+	output = "../../images/test/0036-.jpg"
+	outputWidth = 720
+	outputHeight = 90
+	img.Cut(input, output, outputWidth, outputHeight)
+
+	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "end", "----------")
+}
+
 // go test -v pkg/img/img_test.go -run TestRename
 func TestRename(t *testing.T) {
 	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "start", "----------")
