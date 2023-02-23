@@ -41,12 +41,14 @@ func GetFiles(pathName string) (files []string) {
 }
 
 func SerialRename(files []string) {
-	new := time.Now().Format("20060102150405")
+	timeNow := time.Now().Format("20060102150405")
 
 	var tempFiles []string
 	for key, value := range files {
+		// path.Base(pathString)函数,pathString的值必须为linux风格的路径，即 "/" 才能够正常的获取最后的路径段的值。在如果路径是windows风格的，需要使用 pathfile.ToSlash()函数，将路径转为linux风格
+		value = filepath.ToSlash(value)
 		fileSuffix := path.Ext(value)
-		newpath := path.Dir(value) + "/" + new + "-" + fmt.Sprintf("%04d", key) + fileSuffix
+		newpath := path.Dir(value) + "/" + timeNow + "-" + fmt.Sprintf("%04d", key) + fileSuffix
 		err := os.Rename(value, newpath)
 		if err != nil {
 			fmt.Println(err)

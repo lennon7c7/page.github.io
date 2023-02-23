@@ -3,6 +3,9 @@ package file_test
 import (
 	"fmt"
 	"page.github.io/pkg/file"
+	"page.github.io/pkg/img"
+	"path"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -24,8 +27,10 @@ func TestGetFileList(t *testing.T) {
 func TestSerialRename(t *testing.T) {
 	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "start", "----------")
 
-	pathName := "../../images/test/1"
-	files := file.GetFiles(pathName)
+	_, filename, _, _ := runtime.Caller(0)
+	root := path.Dir(path.Dir(path.Dir(filename)))
+	pathName := root + "/images"
+	files := img.GetFiles(pathName)
 
 	file.SerialRename(files)
 
