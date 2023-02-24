@@ -121,3 +121,18 @@ func TestIsWatermark(t *testing.T) {
 
 	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "end", "----------")
 }
+
+// go test -v pkg/img/img_test.go -run TestCutBorder
+func TestCutBorder(t *testing.T) {
+	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "start", "----------")
+
+	input := "../../images/test/i-am-watermark.jpg"
+	input = "../../images/test/1/0000.jpeg"
+	input = "../../images/test/0000-0000.jpg"
+	output := "../../images/test/is-watermark.jpg"
+	output = input
+	border := 100
+	img.CutBorder(input, output, border)
+
+	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "end", "----------")
+}

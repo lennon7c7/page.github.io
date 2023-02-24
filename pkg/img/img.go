@@ -206,6 +206,27 @@ func Cut(inputFile string, outputFile string, outputWidth int, outputHeight int)
 	}(tempFile)
 }
 
+func CutBorder(inputFile string, outputFile string, border int) {
+	img, _ := os.Open(inputFile)
+	defer func(img *os.File) {
+		err := img.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(img)
+	img1, _ := jpeg.Decode(img)
+
+	outputWidth := img1.Bounds().Dx() - border
+	if outputWidth%2 != 0 {
+		outputWidth--
+	}
+	outputHeight := img1.Bounds().Dy() - border
+	if outputHeight%2 != 0 {
+		outputHeight--
+	}
+	Cut(inputFile, outputFile, outputWidth, outputHeight)
+}
+
 func IsWatermark(inputFile string) (exists bool) {
 	watermarks := []string{"www.", ".net"}
 	exists = false
@@ -256,7 +277,6 @@ func IsWatermark(inputFile string) (exists bool) {
 		return
 	}
 
-	fmt.Println(resultData.Result)
 	if len(resultData.Result) == 0 || len(resultData.Result[0].Data) == 0 {
 		return
 	}
