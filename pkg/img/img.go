@@ -1,6 +1,8 @@
 package img
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/golang/freetype"
 	"github.com/nfnt/resize"
@@ -8,13 +10,28 @@ import (
 	"image/color"
 	"image/draw"
 	"image/jpeg"
+	"io"
+	"net/http"
 	"os"
 	"page.github.io/pkg/array"
 	"page.github.io/pkg/file"
 	"path"
+	"strings"
 )
 
 var ExtList = []string{".jpg", ".jpeg", ".png", ".webp"}
+
+type ApiWatermarkData struct {
+	Base64 string `json:"base64"`
+	Result []struct {
+		SavePath string `json:"save_path"`
+		Data     []struct {
+			Text            string  `json:"text"`
+			Confidence      float64 `json:"confidence"`
+			TextBoxPosition [][]int `json:"text_box_position"`
+		} `json:"data"`
+	} `json:"result"`
+}
 
 // MaxImageWidthHeight 扩张图片宽高
 // 扩张之处以黑色背景填充
@@ -187,4 +204,70 @@ func Cut(inputFile string, outputFile string, outputWidth int, outputHeight int)
 			fmt.Println(err)
 		}
 	}(tempFile)
+}
+
+func IsWatermark(inputFile string) (exists bool) {
+	watermarks := []string{"www.", ".net"}
+	exists = false
+
+	srcByte, err := os.ReadFile(inputFile)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	base64String := base64.StdEncoding.EncodeToString(srcByte)
+
+	url := "https://www.paddlepaddle.org.cn/paddlehub-api/image_classification/chinese_ocr_db_crnn_mobile"
+	method := "POST"
+	payload := strings.NewReader(`{"image":"` + base64String + `"}`)
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, payload)
+
+	_ = os.Remove(inputFile)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(res.Body)
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var resultData ApiWatermarkData
+	err = json.Unmarshal(body, &resultData)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(resultData.Result)
+	if len(resultData.Result) == 0 || len(resultData.Result[0].Data) == 0 {
+		return
+	}
+
+	text := resultData.Result[0].Data[0].Text
+	text = strings.ToLower(text)
+	for _, v := range watermarks {
+		if strings.Contains(text, v) {
+			return true
+		}
+	}
+
+	return
 }

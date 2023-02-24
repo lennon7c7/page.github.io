@@ -74,23 +74,23 @@ func TestResize(t *testing.T) {
 func TestCut(t *testing.T) {
 	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "start", "----------")
 
-	input := "../../images/test/0013.jpg"
-	output := "../../images/test/0013-.jpg"
+	input := "../../images/test/i-am-watermark.jpg"
+	output := "../../images/test/watermark-after-clear.jpg"
 	outputWidth := 720
-	outputHeight := 90
+	outputHeight := 100
 	img.Cut(input, output, outputWidth, outputHeight)
 
-	input = "../../images/test/0031.jpg"
-	output = "../../images/test/0031-.jpg"
-	outputWidth = 720
-	outputHeight = 90
-	img.Cut(input, output, outputWidth, outputHeight)
-
-	input = "../../images/test/0036.jpg"
-	output = "../../images/test/0036-.jpg"
-	outputWidth = 720
-	outputHeight = 90
-	img.Cut(input, output, outputWidth, outputHeight)
+	//input = "../../images/test/0031.jpg"
+	//output = "../../images/test/0031-.jpg"
+	//outputWidth = 720
+	//outputHeight = 100
+	//img.Cut(input, output, outputWidth, outputHeight)
+	//
+	//input = "../../images/test/0036.jpg"
+	//output = "../../images/test/0036-.jpg"
+	//outputWidth = 720
+	//outputHeight = 100
+	//img.Cut(input, output, outputWidth, outputHeight)
 
 	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "end", "----------")
 }
@@ -102,6 +102,22 @@ func TestRename(t *testing.T) {
 	pathName := "../../images/test/1"
 	files := img.GetFiles(pathName)
 	file.SerialRename(files)
+
+	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "end", "----------")
+}
+
+// go test -v pkg/img/img_test.go -run TestIsWatermark
+func TestIsWatermark(t *testing.T) {
+	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "start", "----------")
+
+	input := "../../images/test/i-am-watermark.jpg"
+	input = "../../images/test/1/0000.jpeg"
+	output := "../../images/test/is-watermark.jpg"
+	outputWidth := 720
+	outputHeight := 100
+	img.Cut(input, output, outputWidth, outputHeight)
+
+	fmt.Println(img.IsWatermark(output))
 
 	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "end", "----------")
 }
