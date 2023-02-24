@@ -8,7 +8,9 @@ import (
 	"page.github.io/pkg/file"
 	"page.github.io/pkg/img"
 	"path"
+	"strconv"
 	"strings"
+	"time"
 )
 
 var Channel chan int
@@ -96,6 +98,18 @@ func downloadImage(downloadLink string, filename string) {
 	err := got.New().Download(downloadLink, filename)
 	if err != nil {
 		fmt.Println(err)
+		return
+	}
+	img.CutBorder(filename, filename, 100)
+
+	output := strconv.FormatInt(time.Now().UnixNano(), 10) + path.Ext(filename)
+	outputWidth := 720
+	outputHeight := 100
+	img.Cut(filename, output, outputWidth, outputHeight)
+
+	exists := img.IsWatermark(output)
+	if exists {
+		_ = os.Remove(filename)
 	}
 
 	Channel <- 0
