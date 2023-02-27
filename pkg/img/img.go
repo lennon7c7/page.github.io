@@ -163,7 +163,7 @@ func AuthThumbnail(inputFile string, outputFile string) {
 	}
 }
 
-func Cut(inputFile string, outputFile string, outputWidth int, outputHeight int) {
+func Cut(inputFile string, outputFile string, outputWidth int, outputHeight int) (err error) {
 	rectangle := image.Rect(0, 0, outputWidth, outputHeight)
 	rgba := image.NewRGBA(rectangle)
 
@@ -174,7 +174,10 @@ func Cut(inputFile string, outputFile string, outputWidth int, outputHeight int)
 			fmt.Println(err)
 		}
 	}(img)
-	img1, _ := jpeg.Decode(img)
+	img1, err := jpeg.Decode(img)
+	if err != nil {
+		return
+	}
 
 	offsetX := outputWidth/2 - img1.Bounds().Dx()/2
 	offsetY := outputHeight/2 - img1.Bounds().Dy()/2
@@ -189,13 +192,11 @@ func Cut(inputFile string, outputFile string, outputWidth int, outputHeight int)
 
 	tempFile, err := os.Create(outputFile)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
 	err = jpeg.Encode(tempFile, rgba, &jpeg.Options{Quality: 70})
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 	defer func(file *os.File) {
@@ -204,9 +205,11 @@ func Cut(inputFile string, outputFile string, outputWidth int, outputHeight int)
 			fmt.Println(err)
 		}
 	}(tempFile)
+
+	return
 }
 
-func CutBorder(inputFile string, outputFile string, border int) {
+func CutBorder(inputFile string, outputFile string, border int) (err error) {
 	img, _ := os.Open(inputFile)
 	defer func(img *os.File) {
 		err := img.Close()
@@ -214,7 +217,10 @@ func CutBorder(inputFile string, outputFile string, border int) {
 			fmt.Println(err)
 		}
 	}(img)
-	img1, _ := jpeg.Decode(img)
+	img1, err := jpeg.Decode(img)
+	if err != nil {
+		return
+	}
 
 	outputWidth := img1.Bounds().Dx() - border
 	if outputWidth%2 != 0 {
@@ -224,7 +230,9 @@ func CutBorder(inputFile string, outputFile string, border int) {
 	if outputHeight%2 != 0 {
 		outputHeight--
 	}
-	Cut(inputFile, outputFile, outputWidth, outputHeight)
+	err = Cut(inputFile, outputFile, outputWidth, outputHeight)
+
+	return
 }
 
 func IsWatermark(inputFile string) (exists bool) {
