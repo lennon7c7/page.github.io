@@ -1,7 +1,9 @@
 package file
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -75,4 +77,53 @@ func Exists(path string) bool {
 	_, err := os.Stat(path)
 
 	return !os.IsNotExist(err)
+}
+
+func GetRedirectUrl(oldUrl string) (newUrl string) {
+	client := http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+		Timeout: 30 * time.Second,
+	}
+	resp, err := client.Get(oldUrl)
+	if err != nil {
+		fmt.Println(err)
+		newUrl = oldUrl
+		return
+	}
+
+	newUrl = resp.Header.Get("location")
+	if newUrl == "" {
+		newUrl = oldUrl
+		return
+	}
+
+	return
+}
+
+func Create(fileName string, fileContent any) (err error) {
+	filePath := path.Dir(fileName)
+	if !Exists(filePath) {
+		err = os.MkdirAll(filePath, 0777)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	outputFile, _ := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0777)
+	defer func(outputFile *os.File) {
+		err = outputFile.Close()
+		if err != nil {
+			return
+		}
+	}(outputFile)
+	encoder := json.NewEncoder(outputFile)
+	err = encoder.Encode(fileContent)
+	if err != nil {
+		return
+	}
+
+	return
 }

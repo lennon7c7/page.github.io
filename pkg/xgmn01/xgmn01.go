@@ -3,19 +3,13 @@ package xgmn01
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/melbahja/got"
-	"os"
 	"page.github.io/pkg/file"
-	"page.github.io/pkg/img"
-	"path"
-	"strconv"
 	"strings"
-	"time"
 )
 
 var Channel chan int
-var Domain = "https://xgmn01.com"
-var BaseDownloadImgPath = "../../images/" + file.GetNameWithoutExt() + "/"
+var Domain = "https://www.xgmn02.com"
+var BaseDownloadJsonPath = "../../json/" + file.GetNameWithoutExt() + "/"
 
 func ListPage(url string) {
 	fmt.Println(url)
@@ -29,8 +23,9 @@ func ListPage(url string) {
 	doc.Find(".widget-title a").Each(func(i int, s *goquery.Selection) {
 		detailUrl, _ := s.Attr("href")
 		if detailUrl != "" {
-			downloadPath := detailPage(Domain+detailUrl, 0)
-			file.SerialRename(img.GetFiles(downloadPath))
+			Channel = make(chan int)
+			go detailPage(Domain + detailUrl)
+			<-Channel
 		}
 	})
 
@@ -41,8 +36,13 @@ func ListPage(url string) {
 	}
 }
 
-func detailPage(url string, page int) (downloadPath string) {
+func detailPage(url string) {
 	fmt.Println("  " + url)
+
+	defer func() {
+		Channel <- 0
+	}()
+
 	//goland:noinspection GoDeprecation
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
@@ -52,65 +52,55 @@ func detailPage(url string, page int) (downloadPath string) {
 
 	title := doc.Find(".article-title").First().Text()
 
-	downloadPath = doc.Find(".article-meta .item-1").First().Text()
-	downloadPath = strings.Replace(downloadPath, "更新：", "", 1)
-	downloadPath = strings.Replace(downloadPath, ".", "/", 2)
-	downloadPath += "/" + title
-	downloadPath = BaseDownloadImgPath + downloadPath + "/"
+	updated := doc.Find(".article-meta .item-1").First().Text()
+	updated = strings.Replace(updated, "更新：", "", 1)
+	updated = strings.Replace(updated, ".", "/", 2)
 
-	if file.Exists(downloadPath) && page == 0 {
-		fmt.Println("---------- no shit ---------- ")
-		os.Exit(0)
-	} else {
-		err = os.MkdirAll(downloadPath, 0777)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
+	jsonFile := BaseDownloadJsonPath + updated + "/" + title + ".json"
 
-	doc.Find(".article-content img").Each(func(i int, s *goquery.Selection) {
-		url, _ = s.Attr("src")
-		url = strings.Replace(url, "uploadfile", "Uploadfile", 1)
+	var imgLinkList []string
+	imgLinkList = getDetailPageImgList(url)
 
-		pageString := fmt.Sprintf("%04d-", page)
-		filename := downloadPath + pageString + fmt.Sprintf("%04d", i) + path.Ext(url)
+	dataMap := make(map[string]interface{})
+	dataMap["title"] = title
+	dataMap["updated"] = updated
+	dataMap["url"] = url
+	dataMap["imgLinkList"] = imgLinkList
 
-		Channel = make(chan int)
-		go downloadImage(Domain+url, filename)
-		<-Channel
-	})
-
-	nextUrl, _ := doc.Find(".pagination a:contains(下一页)").First().Attr("href")
-	if nextUrl != "" {
-		nextUrl = Domain + nextUrl
-		nextPage := page
-		nextPage++
-		detailPage(nextUrl, nextPage)
+	err = file.Create(jsonFile, dataMap)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 
 	return
 }
 
-func downloadImage(downloadLink string, filename string) {
-	fmt.Println("    " + downloadLink)
+func getDetailPageImgList(detailPage string) (imgList []string) {
+	//fmt.Println("    " + detailPage)
 
-	err := got.New().Download(downloadLink, filename)
+	//goland:noinspection GoDeprecation
+	doc, err := goquery.NewDocument(detailPage)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	img.CutBorder(filename, filename, 100)
 
-	output := strconv.FormatInt(time.Now().UnixNano(), 10) + path.Ext(filename)
-	outputWidth := 720
-	outputHeight := 100
-	img.Cut(filename, output, outputWidth, outputHeight)
+	doc.Find(".article-content img").Each(func(i int, s *goquery.Selection) {
+		imgSrc, _ := s.Attr("src")
+		imgSrc = Domain + imgSrc
+		imgSrc = file.GetRedirectUrl(imgSrc)
 
-	exists := img.IsWatermark(output)
-	if exists {
-		_ = os.Remove(filename)
+		imgList = append(imgList, imgSrc)
+		//fmt.Println("      " + imgSrc)
+	})
+
+	nextPage, _ := doc.Find(".pagination a:contains(下一页)").First().Attr("href")
+	if nextPage != "" {
+		nextPage = Domain + nextPage
+		temp := getDetailPageImgList(nextPage)
+		imgList = append(imgList, temp...)
 	}
 
-	Channel <- 0
+	return
 }
