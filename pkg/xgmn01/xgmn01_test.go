@@ -20,6 +20,6 @@ func TestMain(m *testing.M) {
 func TestXgywImg(t *testing.T) {
 	runtime.GOMAXPROCS(4)
 
-	firstUrl := xgmn01.Domain + "/Xgyw/"
+	firstUrl := xgmn01.Domain + "/Xgyw/page_118.html"
 	xgmn01.ListPage(firstUrl)
 }
