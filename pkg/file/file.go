@@ -79,6 +79,16 @@ func Exists(path string) bool {
 	return !os.IsNotExist(err)
 }
 
+func IsDir(path string) bool {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		// error handling
+		return false
+	}
+
+	return fileInfo.IsDir()
+}
+
 func GetRedirectUrl(oldUrl string) (newUrl string) {
 	client := http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {

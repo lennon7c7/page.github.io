@@ -28,3 +28,8 @@ func TestXgywImg(t *testing.T) {
 func TestDownloadFromJson(t *testing.T) {
 	xgmn01.DownloadFromJson()
 }
+
+// go test -timeout 0 -v pkg/xgmn01/xgmn01_test.go -run TestImgToVideo
+func TestImgToVideo(t *testing.T) {
+	xgmn01.ImgToVideo()
+}

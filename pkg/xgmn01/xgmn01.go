@@ -6,6 +6,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/melbahja/got"
 	"os"
+	"page.github.io/pkg/ffmpeg"
 	"page.github.io/pkg/file"
 	"page.github.io/pkg/img"
 	"path"
@@ -20,6 +21,7 @@ var Channel chan int
 var Domain = "https://www.xgmn02.com"
 var BaseDownloadJsonPath = "../../json/" + file.GetNameWithoutExt() + "/"
 var BaseDownloadImgPath = "../../images/" + file.GetNameWithoutExt() + "/"
+var BaseOutputVideoPath = "../../video/" + file.GetNameWithoutExt() + "/"
 
 type jsonData struct {
 	Title       string
@@ -72,6 +74,7 @@ func DownloadFromJson() {
 			go downloadImage(imgLink, filename)
 			<-Channel
 		}
+		img.BatchMaxImageWidthHeight(downloadImgPath)
 
 		return nil
 	})
@@ -79,6 +82,59 @@ func DownloadFromJson() {
 	if err != nil {
 		fmt.Println(err)
 		return
+	}
+}
+
+func ImgToVideo() {
+	infos, err := os.ReadDir(BaseDownloadImgPath)
+	if err != nil {
+		return
+	}
+
+	for _, yearDir := range infos {
+		if !yearDir.IsDir() {
+			continue
+		}
+
+		yearDirAbs, _ := filepath.Abs(BaseDownloadImgPath + "/" + yearDir.Name())
+		//fmt.Println(yearDirAbs)
+		monthDirEntries, _ := os.ReadDir(yearDirAbs)
+		//fmt.Println("  ", monthDirEntries)
+		for _, monthDir := range monthDirEntries {
+			if !monthDir.IsDir() {
+				continue
+			}
+
+			//fmt.Println(monthDir.Name())
+			dayDirAbs, _ := filepath.Abs(yearDirAbs + "/" + monthDir.Name())
+			dayDirEntries, _ := os.ReadDir(dayDirAbs)
+			for _, dayDir := range dayDirEntries {
+				if !dayDir.IsDir() {
+					continue
+				}
+
+				//fmt.Println(dayDir.Name())
+				blogDirAbs, _ := filepath.Abs(dayDirAbs + "/" + dayDir.Name())
+				blogDirEntries, _ := os.ReadDir(blogDirAbs)
+				for _, blogDir := range blogDirEntries {
+					if !blogDir.IsDir() {
+						continue
+					}
+
+					//fmt.Println(blogDir.Name())
+					input := blogDirAbs + "/" + blogDir.Name() + "/%04d.jpg"
+					output := BaseOutputVideoPath + yearDir.Name() + "/" + monthDir.Name() + "/" + dayDir.Name() + "/" + blogDir.Name() + ".mp4"
+					fmt.Println(input, output)
+					ffmpeg.Img2Video(input, output)
+
+					inputVideo := output
+					inputAudio := "../../audio/11-The Eagles-Hotel California.mp3"
+					output = inputVideo
+					ffmpeg.AddAudio2Video(inputVideo, inputAudio, output)
+					os.Exit(6)
+				}
+			}
+		}
 	}
 }
 

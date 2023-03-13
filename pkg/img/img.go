@@ -105,6 +105,10 @@ func GetMaxWidthHeight(files []string) (width int, height int) {
 }
 
 func GetFiles(pathName string) (files []string) {
+	if !file.IsDir(pathName) {
+		pathName = path.Dir(pathName)
+	}
+
 	tempFiles := file.GetFiles(pathName)
 
 	for _, value := range tempFiles {
@@ -298,4 +302,13 @@ func IsWatermark(inputFile string) (exists bool) {
 	}
 
 	return
+}
+
+func BatchMaxImageWidthHeight(dirName string) {
+	files := GetFiles(dirName)
+	x, y := GetMaxWidthHeight(files)
+	for _, tempFile := range files {
+		MaxImageWidthHeight(x, y, tempFile)
+	}
+
 }

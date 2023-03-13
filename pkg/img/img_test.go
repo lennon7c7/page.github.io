@@ -23,8 +23,8 @@ func TestMaxImageWidthHeight(t *testing.T) {
 	//imgFile := "../../images/nature-1.jpg"
 	//img.MaxImageWidthHeight(canvasWidth, canvasHeight, imgFile)
 
-	pathName := "../../images/test/1"
-	files := file.GetFiles(pathName)
+	pathName := "../../images/test"
+	files := img.GetFiles(pathName)
 
 	x, y := img.GetMaxWidthHeight(files)
 
@@ -72,7 +72,7 @@ func TestCut(t *testing.T) {
 	output := "../../images/test/watermark-after-clear.jpg"
 	outputWidth := 720
 	outputHeight := 100
-	img.Cut(input, output, outputWidth, outputHeight)
+	_ = img.Cut(input, output, outputWidth, outputHeight)
 
 	//input = "../../images/test/0031.jpg"
 	//output = "../../images/test/0031-.jpg"
@@ -101,7 +101,7 @@ func TestIsWatermark(t *testing.T) {
 	output := "../../images/test/is-watermark.jpg"
 	outputWidth := 720
 	outputHeight := 100
-	img.Cut(input, output, outputWidth, outputHeight)
+	_ = img.Cut(input, output, outputWidth, outputHeight)
 
 	fmt.Println(img.IsWatermark(output))
 }
@@ -114,5 +114,5 @@ func TestCutBorder(t *testing.T) {
 	output := "../../images/test/is-watermark.jpg"
 	output = input
 	border := 100
-	img.CutBorder(input, output, border)
+	_ = img.CutBorder(input, output, border)
 }

@@ -3,14 +3,21 @@ package ffmpeg
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
+	"path"
 	"runtime"
 )
 
 func Img2Video(input string, output string) {
+	err := os.MkdirAll(path.Dir(output), 0777)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	command := "ffmpeg -framerate 1/2 -start_number 1 -i \"" + input + "\" -r 30 -y \"" + output + "\""
 	var msg []byte
-	var err error
 	switch runtime.GOOS {
 	case "windows":
 		msg, err = exec.Command("powershell", command).Output()
