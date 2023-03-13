@@ -74,6 +74,7 @@ func DownloadFromJson() {
 			go downloadImage(imgLink, filename)
 			<-Channel
 		}
+		file.SerialRename(img.GetFiles(downloadImgPath))
 		img.BatchMaxImageWidthHeight(downloadImgPath)
 
 		return nil
