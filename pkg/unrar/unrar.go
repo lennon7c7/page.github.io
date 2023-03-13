@@ -7,7 +7,7 @@ import (
 )
 
 func Command(input string, output string) {
-	err := os.MkdirAll(output, 0777)
+	err := os.MkdirAll(output, os.ModePerm)
 	if err != nil {
 		fmt.Println(err)
 		return

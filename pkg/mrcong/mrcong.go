@@ -6,7 +6,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/melbahja/got"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -35,7 +34,7 @@ func DownloadMediafireLink() {
 			return nil
 		}
 
-		content, err := ioutil.ReadFile(pathFile)
+		content, err := os.ReadFile(pathFile)
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -123,6 +122,7 @@ func DownloadToJson() {
 
 func listPage(url string) {
 	fmt.Println(url)
+	//goland:noinspection GoDeprecation
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
 		fmt.Println(err)
@@ -132,7 +132,7 @@ func listPage(url string) {
 	doc.Find(".post-listing .post-box-title a").Each(func(i int, s *goquery.Selection) {
 		detailUrl, _ := s.Attr("href")
 		if detailUrl != "" {
-			detailPage(detailUrl, 0)
+			detailPage(detailUrl)
 		}
 	})
 
@@ -142,8 +142,9 @@ func listPage(url string) {
 	}
 }
 
-func detailPage(url string, page int) {
+func detailPage(url string) {
 	fmt.Println("  " + url)
+	//goland:noinspection GoDeprecation
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
 		fmt.Println(err)
@@ -157,7 +158,7 @@ func detailPage(url string, page int) {
 	downloadPath = BaseDownloadJsonPath + downloadPath + "/"
 
 	if !file.Exists(downloadPath) {
-		err = os.MkdirAll(downloadPath, 0777)
+		err = os.MkdirAll(downloadPath, os.ModePerm)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -190,7 +191,7 @@ func detailPage(url string, page int) {
 	dataMap["mediafireLink"] = mediafireLinkList
 	dataMap["imgLinkList"] = imgLinkList
 	//打开文件
-	outputFile, _ := os.OpenFile(jsonFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0777)
+	outputFile, _ := os.OpenFile(jsonFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, os.ModePerm)
 	defer func(outputFile *os.File) {
 		err := outputFile.Close()
 		if err != nil {
@@ -233,6 +234,7 @@ func FilterInvalidMediafireLink(oldLinks []string) (newLinks []string) {
 
 func getDetailPageImgList(detailPage string) (imgList []string) {
 	fmt.Println("    " + detailPage)
+	//goland:noinspection GoDeprecation
 	doc, err := goquery.NewDocument(detailPage)
 	if err != nil {
 		fmt.Println(err)

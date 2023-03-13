@@ -115,14 +115,14 @@ func GetRedirectUrl(oldUrl string) (newUrl string) {
 func Create(fileName string, fileContent any) (err error) {
 	filePath := path.Dir(fileName)
 	if !Exists(filePath) {
-		err = os.MkdirAll(filePath, 0777)
+		err = os.MkdirAll(filePath, os.ModePerm)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 	}
 
-	outputFile, _ := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0777)
+	outputFile, _ := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR|os.O_TRUNC, os.ModePerm)
 	defer func(outputFile *os.File) {
 		err = outputFile.Close()
 		if err != nil {

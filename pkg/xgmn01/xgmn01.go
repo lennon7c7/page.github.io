@@ -62,7 +62,7 @@ func DownloadFromJson() {
 			return nil
 		}
 
-		err = os.MkdirAll(downloadImgPath, 0777)
+		err = os.MkdirAll(downloadImgPath, os.ModePerm)
 		if err != nil {
 			return err
 		}

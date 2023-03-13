@@ -10,7 +10,7 @@ import (
 )
 
 func Img2Video(input string, output string) {
-	err := os.MkdirAll(path.Dir(output), 0777)
+	err := os.MkdirAll(path.Dir(output), os.ModePerm)
 	if err != nil {
 		fmt.Println(err)
 		return
