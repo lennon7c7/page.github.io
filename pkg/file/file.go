@@ -3,8 +3,10 @@ package file
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
+	"page.github.io/pkg/array"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -108,6 +110,28 @@ func GetRedirectUrl(oldUrl string) (newUrl string) {
 		newUrl = oldUrl
 		return
 	}
+
+	return
+}
+
+func GetRandomAudio() (randomAudio string) {
+	dirAudio := "../../audio"
+	dirEntries, _ := os.ReadDir(dirAudio)
+	ExtList := []string{".mp3"}
+	var files []string
+	for _, dirEntry := range dirEntries {
+		exists, _ := array.IsExists(path.Ext(dirEntry.Name()), ExtList)
+		if !exists {
+			continue
+		}
+
+		dayDirAbs, _ := filepath.Abs(dirAudio + "/" + dirEntry.Name())
+		files = append(files, dayDirAbs)
+	}
+
+	//goland:noinspection GoDeprecation
+	rand.Seed(time.Now().Unix()) // initialize global pseudo random generator
+	randomAudio = files[rand.Intn(len(files))]
 
 	return
 }

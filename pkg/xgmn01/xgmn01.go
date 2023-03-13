@@ -121,17 +121,24 @@ func ImgToVideo() {
 						continue
 					}
 
-					//fmt.Println(blogDir.Name())
-					input := blogDirAbs + "/" + blogDir.Name() + "/%04d.jpg"
+					inputImgDir := blogDirAbs + "/" + blogDir.Name()
+					inputImgTemplate := inputImgDir + "/%04d.jpg"
+					inputImgList := img.GetFiles(inputImgDir)
+					if len(inputImgList) <= 3 {
+						continue
+					}
+
 					output := BaseOutputVideoPath + yearDir.Name() + "/" + monthDir.Name() + "/" + dayDir.Name() + "/" + blogDir.Name() + ".mp4"
-					fmt.Println(input, output)
-					ffmpeg.Img2Video(input, output)
+					if file.Exists(output) {
+						continue
+					}
+					ffmpeg.Img2Video(inputImgTemplate, output)
 
 					inputVideo := output
-					inputAudio := "../../audio/11-The Eagles-Hotel California.mp3"
+					inputAudio := file.GetRandomAudio()
 					output = inputVideo
 					ffmpeg.AddAudio2Video(inputVideo, inputAudio, output)
-					os.Exit(6)
+					fmt.Println("  ", output)
 				}
 			}
 		}

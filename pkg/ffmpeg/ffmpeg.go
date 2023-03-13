@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"time"
 )
 
 func Img2Video(input string, output string) {
@@ -35,7 +36,9 @@ func Img2Video(input string, output string) {
 }
 
 func AddAudio2Video(inputVideo string, inputAudio string, output string) {
-	command := "ffmpeg -i \"" + inputVideo + "\" -stream_loop -1 -i \"" + inputAudio + "\" -shortest -map 0:v:0 -map 1:a:0 -c:v copy -y \"" + output + "\""
+	tempOutput := time.Now().Format("20060102150405") + path.Ext(output)
+	command := "ffmpeg -i \"" + inputVideo + "\" -stream_loop -1 -i \"" + inputAudio + "\" -shortest -map 0:v:0 -map 1:a:0 -c:v copy -y \"" + tempOutput + "\""
+
 	var msg []byte
 	var err error
 	switch runtime.GOOS {
@@ -51,5 +54,10 @@ func AddAudio2Video(inputVideo string, inputAudio string, output string) {
 		return
 	}
 
-	fmt.Println(msg)
+	if inputVideo == output {
+		_ = os.Remove(inputVideo)
+	}
+	_ = os.Rename(tempOutput, output)
+
+	fmt.Println(string(msg))
 }
