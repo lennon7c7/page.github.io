@@ -2,24 +2,43 @@ package ffmpeg
 
 import (
 	"fmt"
+	"log"
 	"os/exec"
+	"runtime"
 )
 
 func Img2Video(input string, output string) {
 	command := "ffmpeg -framerate 1/2 -start_number 1 -i \"" + input + "\" -r 30 -y \"" + output + "\""
-	msg, err := exec.Command("/bin/sh", "-c", command).Output()
+	var msg []byte
+	var err error
+	switch runtime.GOOS {
+	case "windows":
+		msg, err = exec.Command("powershell", command).Output()
+	case "linux":
+		msg, err = exec.Command("/bin/sh", "-c", command).Output()
+	default:
+		log.Fatalln("I don't support other os")
+	}
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Println(msg)
+	fmt.Println(string(msg))
 }
 
 func AddAudio2Video(inputVideo string, inputAudio string, output string) {
 	command := "ffmpeg -i \"" + inputVideo + "\" -stream_loop -1 -i \"" + inputAudio + "\" -shortest -map 0:v:0 -map 1:a:0 -c:v copy -y \"" + output + "\""
-	fmt.Println(command)
-	msg, err := exec.Command("/bin/sh", "-c", command).Output()
+	var msg []byte
+	var err error
+	switch runtime.GOOS {
+	case "windows":
+		msg, err = exec.Command("powershell", command).Output()
+	case "linux":
+		msg, err = exec.Command("/bin/sh", "-c", command).Output()
+	default:
+		log.Fatalln("I don't support other os")
+	}
 	if err != nil {
 		fmt.Println(err)
 		return
