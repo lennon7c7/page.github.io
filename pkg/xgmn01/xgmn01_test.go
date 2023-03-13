@@ -16,12 +16,12 @@ func TestMain(m *testing.M) {
 	fmt.Println("----------", time.Now().Format("2006-01-02 15:04:05"), "end", "----------")
 }
 
-// go test -timeout 0 -v pkg/xgmn01/xgmn01_test.go -run TestXgywImg
-func TestXgywImg(t *testing.T) {
+// go test -timeout 0 -v pkg/xgmn01/xgmn01_test.go -run TestDownloadToJson
+func TestDownloadToJson(t *testing.T) {
 	runtime.GOMAXPROCS(4)
 
 	firstUrl := xgmn01.Domain + "/Xgyw"
-	xgmn01.ListPage(firstUrl)
+	xgmn01.DownloadToJson(firstUrl)
 }
 
 // go test -timeout 0 -v pkg/xgmn01/xgmn01_test.go -run TestDownloadFromJson

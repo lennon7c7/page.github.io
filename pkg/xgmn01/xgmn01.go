@@ -161,7 +161,7 @@ func downloadImage(downloadLink string, filename string) {
 	}
 }
 
-func ListPage(url string) {
+func DownloadToJson(url string) {
 	fmt.Println(url)
 	//goland:noinspection GoDeprecation
 	doc, err := goquery.NewDocument(url)
@@ -182,7 +182,7 @@ func ListPage(url string) {
 	nextUrl, _ := doc.Find(".pagination a:contains(下一页)").First().Attr("href")
 	if nextUrl != "" {
 		nextUrl = Domain + nextUrl
-		ListPage(nextUrl)
+		DownloadToJson(nextUrl)
 	}
 }
 
@@ -201,15 +201,27 @@ func detailPage(url string) {
 	}
 
 	title := doc.Find(".article-title").First().Text()
+	if title == "" {
+		return
+	}
 
 	updated := doc.Find(".article-meta .item-1").First().Text()
 	updated = strings.Replace(updated, "更新：", "", 1)
 	updated = strings.Replace(updated, ".", "/", 2)
+	if updated == "" {
+		return
+	}
 
 	jsonFile := BaseDownloadJsonPath + updated + "/" + title + ".json"
+	if file.Exists(jsonFile) {
+		return
+	}
 
 	var imgLinkList []string
 	imgLinkList = getDetailPageImgList(url)
+	if len(imgLinkList) == 0 {
+		return
+	}
 
 	dataMap := make(map[string]interface{})
 	dataMap["title"] = title
