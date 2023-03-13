@@ -23,3 +23,8 @@ func TestXgywImg(t *testing.T) {
 	firstUrl := xgmn01.Domain + "/Xgyw"
 	xgmn01.ListPage(firstUrl)
 }
+
+// go test -timeout 0 -v pkg/xgmn01/xgmn01_test.go -run TestDownloadFromJson
+func TestDownloadFromJson(t *testing.T) {
+	xgmn01.DownloadFromJson()
+}
