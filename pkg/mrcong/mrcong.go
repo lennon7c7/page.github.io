@@ -169,7 +169,7 @@ func detailPage(url string) {
 	fmt.Println("  " + jsonFile)
 	if file.Exists(jsonFile) {
 		fmt.Println("---------- no shit ---------- ")
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	var mediafireLinkList []string

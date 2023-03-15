@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -31,59 +32,72 @@ type jsonData struct {
 }
 
 func DownloadFromJson() {
-	runtime.GOMAXPROCS(10)
 	extName := ".json"
+	var files []string
 	err := filepath.Walk(BaseDownloadJsonPath, func(pathFile string, info os.FileInfo, err error) error {
 		if extName != path.Ext(pathFile) {
 			return nil
 		}
 
-		content, err := os.ReadFile(pathFile)
-		if err != nil {
-			fmt.Println(pathFile, err)
-			return err
-		}
-
-		//Now let's unmarshall the data into `payload`
-		var payload jsonData
-		err = json.Unmarshal(content, &payload)
-		if err != nil {
-			fmt.Println(pathFile, err)
-			return err
-		}
-
-		if len(payload.ImgLinkList) == 0 {
-			return nil
-		}
-
-		downloadImgPath := BaseDownloadImgPath + payload.Updated + "/" + payload.Title
-		dirEntries, _ := os.ReadDir(downloadImgPath)
-		if file.Exists(downloadImgPath) && len(dirEntries) > 0 {
-			return nil
-		}
-
-		err = os.MkdirAll(downloadImgPath, os.ModePerm)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println("  " + payload.Url)
-		for i, imgLink := range payload.ImgLinkList {
-			filename := downloadImgPath + fmt.Sprintf("/%04d", i) + path.Ext(imgLink)
-			Channel = make(chan int)
-			go downloadImage(imgLink, filename)
-			<-Channel
-		}
-		file.SerialRename(img.GetFiles(downloadImgPath))
-		img.BatchMaxImageWidthHeight(downloadImgPath)
+		files = append(files, pathFile)
 
 		return nil
 	})
+
+	// 降序
+	sort.Sort(sort.Reverse(sort.StringSlice(files)))
+
+	runtime.GOMAXPROCS(10)
+	for _, jsonFile := range files {
+		_ = downloadFromJson(jsonFile)
+	}
 
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+}
+
+func downloadFromJson(jsonFile string) (err error) {
+	content, err := os.ReadFile(jsonFile)
+	if err != nil {
+		return
+	}
+
+	//Now let's unmarshall the data into `payload`
+	var payload jsonData
+	err = json.Unmarshal(content, &payload)
+	if err != nil {
+		return
+	}
+
+	if len(payload.ImgLinkList) == 0 {
+		return
+	}
+
+	downloadImgPath := BaseDownloadImgPath + payload.Updated + "/" + payload.Title
+	dirEntries, _ := os.ReadDir(downloadImgPath)
+	if file.Exists(downloadImgPath) && len(dirEntries) > 0 {
+		fmt.Println("---------- no shit ---------- ")
+		os.Exit(1)
+	}
+
+	err = os.MkdirAll(downloadImgPath, os.ModePerm)
+	if err != nil {
+		return
+	}
+
+	fmt.Println("  ", payload.Url)
+	for i, imgLink := range payload.ImgLinkList {
+		filename := downloadImgPath + fmt.Sprintf("/%04d", i) + path.Ext(imgLink)
+		Channel = make(chan int)
+		go downloadImage(imgLink, filename)
+		<-Channel
+	}
+	file.SerialRename(img.GetFiles(downloadImgPath))
+	img.BatchMaxImageWidthHeight(downloadImgPath)
+
+	return
 }
 
 func ImgToVideo() {
@@ -92,21 +106,19 @@ func ImgToVideo() {
 		return
 	}
 
+	var files []string
 	for _, yearDir := range infos {
 		if !yearDir.IsDir() {
 			continue
 		}
 
 		yearDirAbs, _ := filepath.Abs(BaseDownloadImgPath + "/" + yearDir.Name())
-		//fmt.Println(yearDirAbs)
 		monthDirEntries, _ := os.ReadDir(yearDirAbs)
-		//fmt.Println("  ", monthDirEntries)
 		for _, monthDir := range monthDirEntries {
 			if !monthDir.IsDir() {
 				continue
 			}
 
-			//fmt.Println(monthDir.Name())
 			dayDirAbs, _ := filepath.Abs(yearDirAbs + "/" + monthDir.Name())
 			dayDirEntries, _ := os.ReadDir(dayDirAbs)
 			for _, dayDir := range dayDirEntries {
@@ -114,7 +126,6 @@ func ImgToVideo() {
 					continue
 				}
 
-				//fmt.Println(dayDir.Name())
 				blogDirAbs, _ := filepath.Abs(dayDirAbs + "/" + dayDir.Name())
 				blogDirEntries, _ := os.ReadDir(blogDirAbs)
 				for _, blogDir := range blogDirEntries {
@@ -123,7 +134,6 @@ func ImgToVideo() {
 					}
 
 					inputImgDir := blogDirAbs + "/" + blogDir.Name()
-					inputImgTemplate := inputImgDir + "/%04d.jpg"
 					inputImgList := img.GetFiles(inputImgDir)
 					if len(inputImgList) <= 3 {
 						continue
@@ -133,16 +143,40 @@ func ImgToVideo() {
 					if file.Exists(output) {
 						continue
 					}
-					ffmpeg.Img2Video(inputImgTemplate, output)
 
-					inputVideo := output
-					inputAudio := file.GetRandomAudio()
-					output = inputVideo
-					ffmpeg.AddAudio2Video(inputVideo, inputAudio, output)
-					fmt.Println("  ", output)
+					files = append(files, inputImgDir)
 				}
 			}
 		}
+	}
+
+	// 降序
+	sort.Sort(sort.Reverse(sort.StringSlice(files)))
+
+	for _, inputImgDir := range files {
+		blogDirName := filepath.Base(inputImgDir)
+		dayDirName := filepath.Base(filepath.Dir(inputImgDir))
+		monthDirName := filepath.Base(filepath.Dir(filepath.Dir(inputImgDir)))
+		yearDirName := filepath.Base(filepath.Dir(filepath.Dir(filepath.Dir(inputImgDir))))
+
+		inputImgTemplate := inputImgDir + "/%04d.jpg"
+		inputImgList := img.GetFiles(inputImgDir)
+		if len(inputImgList) <= 3 {
+			continue
+		}
+
+		output := BaseOutputVideoPath + yearDirName + "/" + monthDirName + "/" + dayDirName + "/" + blogDirName + ".mp4"
+		if file.Exists(output) {
+			fmt.Println("---------- no shit ---------- ")
+			os.Exit(1)
+		}
+		ffmpeg.Img2Video(inputImgTemplate, output)
+
+		inputVideo := output
+		inputAudio := file.GetRandomAudio()
+		output = inputVideo
+		ffmpeg.AddAudio2Video(inputVideo, inputAudio, output)
+		fmt.Println("  ", output)
 	}
 }
 
@@ -195,7 +229,7 @@ func DownloadToJson(url string) {
 }
 
 func detailPage(url string) {
-	fmt.Println("  " + url)
+	fmt.Println("  ", url)
 
 	defer func() {
 		Channel <- 0
@@ -222,7 +256,8 @@ func detailPage(url string) {
 
 	jsonFile := BaseDownloadJsonPath + updated + "/" + title + ".json"
 	if file.Exists(jsonFile) {
-		return
+		fmt.Println("---------- no shit ---------- ")
+		os.Exit(1)
 	}
 
 	var imgLinkList []string
