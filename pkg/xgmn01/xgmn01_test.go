@@ -3,7 +3,6 @@ package xgmn01_test
 import (
 	"fmt"
 	"page.github.io/pkg/xgmn01"
-	"runtime"
 	"testing"
 	"time"
 )
@@ -18,33 +17,37 @@ func TestMain(m *testing.M) {
 
 // go test -timeout 0 -v pkg/xgmn01/xgmn01_test.go -run TestReadyToUpload
 func TestReadyToUpload(t *testing.T) {
-	runtime.GOMAXPROCS(4)
-
 	// step1
 	firstUrl := xgmn01.Domain + "/Xgyw"
-	xgmn01.DownloadToJson(firstUrl)
+	jsonFiles := xgmn01.DownloadToJson(firstUrl)
+	if len(jsonFiles) == 0 {
+		return
+	}
 
 	// step2
-	xgmn01.DownloadFromJson()
+	imgFiles := xgmn01.DownloadFromJson(jsonFiles)
+	if len(imgFiles) == 0 {
+		return
+	}
 
 	// step3
-	xgmn01.ImgToVideo()
+	xgmn01.ImgToVideo(imgFiles)
 }
 
 // go test -timeout 0 -v pkg/xgmn01/xgmn01_test.go -run TestDownloadToJson
 func TestDownloadToJson(t *testing.T) {
-	runtime.GOMAXPROCS(4)
-
 	firstUrl := xgmn01.Domain + "/Xgyw"
 	xgmn01.DownloadToJson(firstUrl)
 }
 
 // go test -timeout 0 -v pkg/xgmn01/xgmn01_test.go -run TestDownloadFromJson
 func TestDownloadFromJson(t *testing.T) {
-	xgmn01.DownloadFromJson()
+	var jsonFiles []string
+	_ = xgmn01.DownloadFromJson(jsonFiles)
 }
 
 // go test -timeout 0 -v pkg/xgmn01/xgmn01_test.go -run TestImgToVideo
 func TestImgToVideo(t *testing.T) {
-	xgmn01.ImgToVideo()
+	var imgDirs []string
+	xgmn01.ImgToVideo(imgDirs)
 }
