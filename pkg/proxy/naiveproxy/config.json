@@ -1,0 +1,6 @@
+{
+  "listen": "socks://127.0.0.1:9982",
+  "proxy": "https://dongtaiwang.com:dongtaiwang.com@naive1.cfcdn3.xyz",
+  "log": ""
+}
+
