@@ -20,3 +20,9 @@ func TestDownloadToJson(t *testing.T) {
 	webUrl := mrcong.Domain + "/tag/%e5%b0%8f%e4%bb%93%e5%8d%83%e4%bb%a3w/"
 	mrcong.DownloadToJson(webUrl)
 }
+
+// go test -timeout 0 -v pkg/mrcong/mrcong_test.go -run TestDownloadMediafireLink
+func TestDownloadMediafireLink(t *testing.T) {
+	var jsonFiles []string
+	mrcong.DownloadMediafireLink(jsonFiles)
+}

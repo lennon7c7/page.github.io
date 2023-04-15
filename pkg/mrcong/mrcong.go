@@ -15,6 +15,7 @@ import (
 	"page.github.io/pkg/proxy"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -31,19 +32,38 @@ type jsonData struct {
 	ImgLinkList   []string
 }
 
-func DownloadMediafireLink() {
-	dirName := "json/" + file.GetNameWithoutExt()
-	var files []string
-	extName := ".json"
-	err := filepath.Walk(dirName, func(pathFile string, info os.FileInfo, err error) error {
-		if extName != path.Ext(pathFile) {
+func DownloadMediafireLink(jsonFiles []string) {
+	if len(jsonFiles) == 0 {
+		extName := ".json"
+		err := filepath.Walk(BaseDownloadJsonPath, func(pathFile string, info os.FileInfo, err error) error {
+			if extName != path.Ext(pathFile) {
+				return nil
+			}
+
+			jsonFiles = append(jsonFiles, pathFile)
+
 			return nil
+		})
+		if err != nil {
+			fmt.Println(err)
+			return
 		}
 
-		content, err := os.ReadFile(pathFile)
+		// 降序
+		sort.Sort(sort.Reverse(sort.StringSlice(jsonFiles)))
+	}
+
+	for _, jsonFile := range jsonFiles {
+		jsonFile, err := filepath.Abs(jsonFile)
 		if err != nil {
 			log.Error(err)
-			return err
+			continue
+		}
+
+		content, err := os.ReadFile(jsonFile)
+		if err != nil {
+			log.Error(err)
+			continue
 		}
 
 		// Now let's unmarshall the data into `payload`
@@ -51,16 +71,16 @@ func DownloadMediafireLink() {
 		err = json.Unmarshal(content, &payload)
 		if err != nil {
 			log.Error(err)
-			return err
+			continue
 		}
 
 		if len(payload.MediafireLink) == 0 {
-			return nil
+			continue
 		}
 
 		newPageLinks := FilterInvalidMediafireLink(payload.MediafireLink)
 		if len(newPageLinks) == 0 {
-			return nil
+			continue
 		}
 
 		for _, pageLink := range newPageLinks {
@@ -79,6 +99,7 @@ func DownloadMediafireLink() {
 			}(res.Body)
 			if res.StatusCode != 200 {
 				log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+				continue
 			}
 
 			doc, err := goquery.NewDocumentFromReader(res.Body)
@@ -88,10 +109,6 @@ func DownloadMediafireLink() {
 			}
 
 			downloadLink, _ := doc.Find("#downloadButton").Attr("href")
-			fmt.Println(pathFile)
-			fmt.Println(payload)
-			fmt.Println(pageLink)
-			fmt.Println(downloadLink)
 
 			fileURL, err := url.Parse(downloadLink)
 			if err != nil {
@@ -100,26 +117,33 @@ func DownloadMediafireLink() {
 			}
 			segments := strings.Split(fileURL.Path, "/")
 			fileName := segments[len(segments)-1]
-			outputFile := "zip/" + file.GetNameWithoutExt() + "/" + fileName
+			outputFile := BaseDownloadZipPath + fileName
+			outputFile, err = filepath.Abs(outputFile)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
 
 			if file.Exists(outputFile) {
 				continue
 			}
 
+			fmt.Printf("jsonFile: %v\n", jsonFile)
+			err = os.MkdirAll(filepath.Dir(outputFile), os.ModePerm)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			fmt.Println("  ", downloadLink)
 			err = got.New().Download(downloadLink, outputFile)
 			if err != nil {
 				log.Error(err)
 				continue
 			}
+
+			fmt.Println("  ", outputFile)
 		}
-
-		files = append(files, pathFile)
-		return nil
-	})
-
-	if err != nil {
-		log.Error(err)
-		return
 	}
 }
 
