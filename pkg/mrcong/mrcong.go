@@ -2,27 +2,33 @@ package mrcong
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/melbahja/got"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"page.github.io/pkg/file"
+	"page.github.io/pkg/log"
+	"page.github.io/pkg/proxy"
 	"path"
 	"path/filepath"
 	"strings"
 )
 
-var domain = "https://mrcong.com"
+var IsExit bool
+var Domain = "https://mrcong.com"
 var BaseDownloadJsonPath = "../../json/" + file.GetNameWithoutExt() + "/"
+var BaseDownloadZipPath = "../../zip/" + file.GetNameWithoutExt() + "/"
 
 type jsonData struct {
 	MediafireLink []string
 	Title         string
+	Updated       string
 	Url           string
+	ImgLinkList   []string
 }
 
 func DownloadMediafireLink() {
@@ -36,7 +42,7 @@ func DownloadMediafireLink() {
 
 		content, err := os.ReadFile(pathFile)
 		if err != nil {
-			fmt.Println(err)
+			log.Error(err)
 			return err
 		}
 
@@ -44,7 +50,7 @@ func DownloadMediafireLink() {
 		var payload jsonData
 		err = json.Unmarshal(content, &payload)
 		if err != nil {
-			fmt.Println(err)
+			log.Error(err)
 			return err
 		}
 
@@ -61,13 +67,14 @@ func DownloadMediafireLink() {
 			// Request the HTML page.
 			res, err := http.Get(pageLink)
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 				continue
 			}
 			defer func(Body io.ReadCloser) {
-				err := Body.Close()
-				if err != nil {
-					fmt.Println(err)
+				closeErr := Body.Close()
+				if closeErr != nil {
+					err = closeErr
+					log.Error(err)
 				}
 			}(res.Body)
 			if res.StatusCode != 200 {
@@ -76,7 +83,7 @@ func DownloadMediafireLink() {
 
 			doc, err := goquery.NewDocumentFromReader(res.Body)
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 				continue
 			}
 
@@ -88,7 +95,7 @@ func DownloadMediafireLink() {
 
 			fileURL, err := url.Parse(downloadLink)
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 				continue
 			}
 			segments := strings.Split(fileURL.Path, "/")
@@ -101,7 +108,7 @@ func DownloadMediafireLink() {
 
 			err = got.New().Download(downloadLink, outputFile)
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 				continue
 			}
 		}
@@ -111,30 +118,39 @@ func DownloadMediafireLink() {
 	})
 
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 		return
 	}
 }
 
-func DownloadToJson() {
-	listPage(domain)
+func DownloadToJson(webUrl string) {
+	listPage(webUrl)
 }
 
 func listPage(url string) {
+	IsExit = false
 	fmt.Println(url)
-	//goland:noinspection GoDeprecation
-	doc, err := goquery.NewDocument(url)
+
+	doc, err := proxy.GetHtmlDom(url)
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 		return
 	}
 
 	doc.Find(".post-listing .post-box-title a").Each(func(i int, s *goquery.Selection) {
 		detailUrl, _ := s.Attr("href")
 		if detailUrl != "" {
-			detailPage(detailUrl)
+			err = detailPage(detailUrl)
+			if err != nil {
+				log.Error(err)
+				return
+			}
 		}
 	})
+
+	if IsExit {
+		return
+	}
 
 	nextUrl, _ := doc.Find("head link[rel=next]").Attr("href")
 	if nextUrl != "" {
@@ -142,16 +158,23 @@ func listPage(url string) {
 	}
 }
 
-func detailPage(url string) {
-	fmt.Println("  " + url)
-	//goland:noinspection GoDeprecation
-	doc, err := goquery.NewDocument(url)
+func detailPage(url string) (err error) {
+	if url == "" {
+		err = errors.New(`url == ""`)
+		return
+	}
+	fmt.Println("  ", url)
+
+	doc, err := proxy.GetHtmlDom(url)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
 	title := doc.Find("#crumbs .current").Text()
+	if title == "" {
+		err = errors.New(`title == ""`)
+		return
+	}
 
 	downloadPath := doc.Find(".updated").Text()
 	downloadPath = strings.Replace(downloadPath, "-", "/", 2)
@@ -160,53 +183,54 @@ func detailPage(url string) {
 	if !file.Exists(downloadPath) {
 		err = os.MkdirAll(downloadPath, os.ModePerm)
 		if err != nil {
-			fmt.Println(err)
 			return
 		}
 	}
 
-	jsonFile := downloadPath + title + ".json"
-	fmt.Println("  " + jsonFile)
+	jsonFile := downloadPath + filepath.Base(url) + ".json"
+	jsonFile, err = filepath.Abs(jsonFile)
+	if err != nil {
+		return
+	}
+
 	if file.Exists(jsonFile) {
 		fmt.Println("---------- no shit ---------- ")
-		os.Exit(1)
+		IsExit = true
+		return
 	}
 
 	var mediafireLinkList []string
 	doc.Find("a.shortc-button.medium.green").Each(func(i int, s *goquery.Selection) {
 		mediafireLink, _ := s.Attr("href")
 		mediafireLinkList = append(mediafireLinkList, mediafireLink)
-		fmt.Println("    " + mediafireLink)
 	})
 
 	var imgLinkList []string
 	imgLinkList = getDetailPageImgList(url)
-
-	//这里创建一个需要写入的map
-	dataMap := make(map[string]interface{})
-	//将数据写入map
-	dataMap["title"] = title
-	dataMap["updated"] = doc.Find(".updated").Text()
-	dataMap["url"] = url
-	dataMap["mediafireLink"] = mediafireLinkList
-	dataMap["imgLinkList"] = imgLinkList
-	//打开文件
-	outputFile, _ := os.OpenFile(jsonFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, os.ModePerm)
-	defer func(outputFile *os.File) {
-		err := outputFile.Close()
-		if err != nil {
-			fmt.Println(err)
-		}
-	}(outputFile)
-	//创建encoder 数据输出到file中
-	encoder := json.NewEncoder(outputFile)
-	//把dataMap的数据encode到file中
-	err = encoder.Encode(dataMap)
-	//异常处理
-	if err != nil {
-		fmt.Println(err)
+	if len(imgLinkList) == 0 {
+		err = errors.New(`len(imgLinkList) == 0`)
 		return
 	}
+
+	dataMap, err := json.MarshalIndent(jsonData{
+		MediafireLink: mediafireLinkList,
+		Title:         title,
+		Updated:       doc.Find(".updated").Text(),
+		Url:           url,
+		ImgLinkList:   imgLinkList,
+	}, "", "  ")
+	if err != nil {
+		return
+	}
+
+	err = os.WriteFile(jsonFile, dataMap, os.ModePerm)
+	if err != nil {
+		return
+	}
+
+	fmt.Println("    ", jsonFile)
+
+	return
 }
 
 func FilterInvalidMediafireLink(oldLinks []string) (newLinks []string) {
@@ -233,18 +257,18 @@ func FilterInvalidMediafireLink(oldLinks []string) (newLinks []string) {
 }
 
 func getDetailPageImgList(detailPage string) (imgList []string) {
-	fmt.Println("    " + detailPage)
-	//goland:noinspection GoDeprecation
-	doc, err := goquery.NewDocument(detailPage)
+	//fmt.Println("    ", detailPage)
+
+	doc, err := proxy.GetHtmlDom(detailPage)
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 		return
 	}
 
 	doc.Find("#fukie2 img.aligncenter").Each(func(i int, s *goquery.Selection) {
 		val, _ := s.Attr("src")
 		imgList = append(imgList, val)
-		fmt.Println("      " + val)
+		//fmt.Println("      ", val)
 	})
 
 	nextDetailPage, _ := doc.Find("head link[rel=next]").Attr("href")

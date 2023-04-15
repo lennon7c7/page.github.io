@@ -17,5 +17,6 @@ func TestMain(m *testing.M) {
 
 // go test -timeout 0 -v pkg/mrcong/mrcong_test.go -run TestDownloadToJson
 func TestDownloadToJson(t *testing.T) {
-	mrcong.DownloadToJson()
+	webUrl := mrcong.Domain + "/tag/%e5%b0%8f%e4%bb%93%e5%8d%83%e4%bb%a3w/"
+	mrcong.DownloadToJson(webUrl)
 }
