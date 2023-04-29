@@ -60,7 +60,7 @@ func Txt2img() {
 
 	payload := strings.NewReader(`{
   "sd_model_checkpoint": "chilloutmix.safetensors [fc2511737a]",
-  "prompt": "masterpiece,best quality,official art,extremely detailed CG unity 8k wallpaper, ((1girl)), huge breasts, ((((side-tie_bikini)))), light blush, ((((bishoujo)))), ",
+  "prompt": "<lora:koreanDollLikeness_v15:0.7>, masterpiece,best quality,((1girl)), huge breasts, ((((side-tie_bikini)))), light blush, ((((looking at viewer)))), closeup, ((((arms behind head)))), ",
   "seed": -1,
   "subseed": -1,
   "batch_size": 1,
@@ -72,7 +72,7 @@ func Txt2img() {
   "tiling": false,
   "do_not_save_samples": false,
   "do_not_save_grid": false,
-  "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, bad feet",
+  "negative_prompt": "lowres, bad anatomy, bad hands, bad feet, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
   "eta": 0,
   "s_churn": 0,
   "s_tmax": 0,
