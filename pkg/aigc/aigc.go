@@ -1,12 +1,19 @@
 package aigc
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"page.github.io/pkg/file"
 	"page.github.io/pkg/log"
 	"strings"
+	"time"
 )
+
+var BaseDownloadImgPath = "../../images/" + file.GetNameWithoutExt() + "/"
 
 type Txt2ImgRequest struct {
 	EnableHr          bool     `json:"enable_hr"`
@@ -54,42 +61,52 @@ type Txt2ImgRequest struct {
 	} `json:"alwayson_scripts"`
 }
 
+type Txt2ImgResponse struct {
+	Images     []string `json:"images"`
+	Parameters struct{} `json:"parameters"`
+	Info       string   `json:"info"`
+}
+
+type PngContext struct {
+	Parameters string
+}
+
 func Txt2img() {
-	url := "http://127.0.0.1:7860/sdapi/v1/txt2img"
+	apiUrl := "http://127.0.0.1:7860/sdapi/v1/txt2img"
 	method := "POST"
 
 	payload := strings.NewReader(`{
-  "sd_model_checkpoint": "chilloutmix.safetensors [fc2511737a]",
-  "prompt": "<lora:koreanDollLikeness_v15:0.7>, masterpiece,best quality,((1girl)), huge breasts, ((((side-tie_bikini)))), light blush, ((((looking at viewer)))), closeup, ((((arms behind head)))), ",
-  "seed": -1,
-  "subseed": -1,
-  "batch_size": 1,
-  "steps": 20,
-  "cfg_scale": 7,
-  "width": 500,
-  "height": 900,
-  "restore_faces": false,
-  "tiling": false,
-  "do_not_save_samples": false,
-  "do_not_save_grid": false,
-  "negative_prompt": "lowres, bad anatomy, bad hands, bad feet, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
-  "eta": 0,
-  "s_churn": 0,
-  "s_tmax": 0,
-  "s_tmin": 0,
-  "s_noise": 1,
-  "override_settings": {},
-  "override_settings_restore_afterwards": true,
-  "script_args": [],
-  "sampler_index": "Euler a",
-  "script_name": "",
-  "send_images": true,
-  "save_images": true,
-  "alwayson_scripts": {}
-}`)
+	 "sd_model_checkpoint": "chilloutmix.safetensors [fc2511737a]",
+	 "prompt": "<lora:koreanDollLikeness_v15:0.7>, masterpiece, best quality, ((((1girl)))), ((((huge breasts, detail breasts)))), ((((side-tie_bikini)))), ((((looking at viewer)))), ((((closeup)))), ((((detail arms, arms behind head)))), light blush",
+	 "seed": -1,
+	 "subseed": -1,
+	 "batch_size": 1,
+	 "steps": 20,
+	 "cfg_scale": 7,
+	 "width": 500,
+  	 "height": 900,
+	 "restore_faces": false,
+	 "tiling": false,
+	 "do_not_save_samples": false,
+	 "do_not_save_grid": false,
+	 "negative_prompt": "lowres, bad anatomy, ((((bad hands)))), bad feet, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
+	 "eta": 0,
+	 "s_churn": 0,
+	 "s_tmax": 0,
+	 "s_tmin": 0,
+	 "s_noise": 1,
+	 "override_settings": {},
+	 "override_settings_restore_afterwards": true,
+	 "script_args": [],
+	 "sampler_index": "Euler",
+	 "script_name": "",
+	 "send_images": true,
+	 "save_images": false,
+	 "alwayson_scripts": {}
+	}`)
 
 	client := &http.Client{}
-	req, err := http.NewRequest(method, url, payload)
+	req, err := http.NewRequest(method, apiUrl, payload)
 
 	if err != nil {
 		fmt.Println(err)
@@ -111,10 +128,38 @@ func Txt2img() {
 		}
 	}(res.Body)
 
-	//body, err := ioutil.ReadAll(res.Body)
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//fmt.Println(string(body))
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var resultData Txt2ImgResponse
+	err = json.Unmarshal(body, &resultData)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = os.MkdirAll(BaseDownloadImgPath, os.ModePerm)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	for _, i2 := range resultData.Images {
+		filePath := BaseDownloadImgPath + time.Now().Format("20060102150405") + "example.jpg"
+		ddd, err := base64.StdEncoding.DecodeString(i2)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		err = os.WriteFile(filePath, ddd, os.ModePerm)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		fmt.Println(filePath)
+	}
 }
