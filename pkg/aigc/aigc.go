@@ -1,6 +1,7 @@
 package aigc
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -16,49 +17,33 @@ import (
 var BaseDownloadImgPath = "../../images/" + file.GetNameWithoutExt() + "/"
 
 type Txt2ImgRequest struct {
-	EnableHr          bool     `json:"enable_hr"`
-	DenoisingStrength int      `json:"denoising_strength"`
-	FirstphaseWidth   int      `json:"firstphase_width"`
-	FirstphaseHeight  int      `json:"firstphase_height"`
-	HrScale           int      `json:"hr_scale"`
-	HrUpscaler        string   `json:"hr_upscaler"`
-	HrSecondPassSteps int      `json:"hr_second_pass_steps"`
-	HrResizeX         int      `json:"hr_resize_x"`
-	HrResizeY         int      `json:"hr_resize_y"`
-	Prompt            string   `json:"prompt"`
-	Styles            []string `json:"styles"`
-	Seed              int      `json:"seed"`
-	Subseed           int      `json:"subseed"`
-	SubseedStrength   int      `json:"subseed_strength"`
-	SeedResizeFromH   int      `json:"seed_resize_from_h"`
-	SeedResizeFromW   int      `json:"seed_resize_from_w"`
-	SamplerName       string   `json:"sampler_name"`
-	BatchSize         int      `json:"batch_size"`
-	NIter             int      `json:"n_iter"`
-	Steps             int      `json:"steps"`
-	CfgScale          int      `json:"cfg_scale"`
-	Width             int      `json:"width"`
-	Height            int      `json:"height"`
-	RestoreFaces      bool     `json:"restore_faces"`
-	Tiling            bool     `json:"tiling"`
-	DoNotSaveSamples  bool     `json:"do_not_save_samples"`
-	DoNotSaveGrid     bool     `json:"do_not_save_grid"`
-	NegativePrompt    string   `json:"negative_prompt"`
-	Eta               int      `json:"eta"`
-	SChurn            int      `json:"s_churn"`
-	STmax             int      `json:"s_tmax"`
-	STmin             int      `json:"s_tmin"`
-	SNoise            int      `json:"s_noise"`
-	OverrideSettings  struct {
-	} `json:"override_settings"`
-	OverrideSettingsRestoreAfterwards bool          `json:"override_settings_restore_afterwards"`
-	ScriptArgs                        []interface{} `json:"script_args"`
-	SamplerIndex                      string        `json:"sampler_index"`
-	ScriptName                        string        `json:"script_name"`
-	SendImages                        bool          `json:"send_images"`
-	SaveImages                        bool          `json:"save_images"`
-	AlwaysonScripts                   struct {
-	} `json:"alwayson_scripts"`
+	SdModelCheckpoint string `json:"sd_model_checkpoint"`
+	Prompt            string `json:"prompt"`
+	Seed              int    `json:"seed"`
+	Subseed           int    `json:"subseed"`
+	BatchSize         int    `json:"batch_size"`
+	Steps             int    `json:"steps"`
+	CfgScale          int    `json:"cfg_scale"`
+	Width             int    `json:"width"`
+	Height            int    `json:"height"`
+	RestoreFaces      bool   `json:"restore_faces"`
+	Tiling            bool   `json:"tiling"`
+	DoNotSaveSamples  bool   `json:"do_not_save_samples"`
+	DoNotSaveGrid     bool   `json:"do_not_save_grid"`
+	NegativePrompt    string `json:"negative_prompt"`
+	Eta               int    `json:"eta"`
+	SChurn            int    `json:"s_churn"`
+	STmax             int    `json:"s_tmax"`
+	STmin             int    `json:"s_tmin"`
+	SNoise            int    `json:"s_noise"`
+	//OverrideSettings                  struct{}      `json:"override_settings"`
+	OverrideSettingsRestoreAfterwards bool `json:"override_settings_restore_afterwards"`
+	//ScriptArgs                        []interface{} `json:"script_args"`
+	SamplerIndex string `json:"sampler_index"`
+	ScriptName   string `json:"script_name"`
+	SendImages   bool   `json:"send_images"`
+	SaveImages   bool   `json:"save_images"`
+	//AlwaysonScripts                   struct{}      `json:"alwayson_scripts"`
 }
 
 type Txt2ImgResponse struct {
@@ -75,39 +60,50 @@ func Txt2img() {
 	apiUrl := "http://127.0.0.1:7860/sdapi/v1/txt2img"
 	method := "POST"
 
-	payload := strings.NewReader(`{
-	 "sd_model_checkpoint": "chilloutmix.safetensors [fc2511737a]",
-	 "prompt": "<lora:koreanDollLikeness_v15:0.7>, masterpiece, best quality, ((((1girl)))), ((((huge breasts, detail breasts)))), ((((side-tie_bikini)))), ((((looking at viewer)))), ((((closeup)))), ((((detail arms, arms behind head)))), light blush",
-	 "seed": -1,
-	 "subseed": -1,
-	 "batch_size": 1,
-	 "steps": 20,
-	 "cfg_scale": 7,
-	 "width": 500,
-  	 "height": 900,
-	 "restore_faces": false,
-	 "tiling": false,
-	 "do_not_save_samples": false,
-	 "do_not_save_grid": false,
-	 "negative_prompt": "lowres, bad anatomy, ((((bad hands)))), bad feet, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
-	 "eta": 0,
-	 "s_churn": 0,
-	 "s_tmax": 0,
-	 "s_tmin": 0,
-	 "s_noise": 1,
-	 "override_settings": {},
-	 "override_settings_restore_afterwards": true,
-	 "script_args": [],
-	 "sampler_index": "Euler",
-	 "script_name": "",
-	 "send_images": true,
-	 "save_images": false,
-	 "alwayson_scripts": {}
-	}`)
+	txt2ImgRequest := Txt2ImgRequest{
+		SdModelCheckpoint: "chilloutmix.safetensors [fc2511737a]",
+		Prompt:            "<lora:koreanDollLikeness_v15:0.7>, masterpiece, best quality, ((((1girl)))), ((((huge breasts, detail breasts)))), ((((side-tie_bikini)))), ((((looking at viewer)))), ((((closeup)))), ((((detail arms, arms behind head)))), light blush",
+		Seed:              -1,
+		Subseed:           -1,
+		BatchSize:         1,
+		Steps:             30,
+		CfgScale:          7,
+		Width:             500,
+		Height:            900,
+		RestoreFaces:      false,
+		Tiling:            false,
+		DoNotSaveSamples:  false,
+		DoNotSaveGrid:     false,
+		NegativePrompt:    "lowres, bad anatomy, ((((bad hands)))), bad feet, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
+		Eta:               0,
+		SChurn:            0,
+		STmax:             0,
+		STmin:             0,
+		SNoise:            1,
+		//OverrideSettings:                  struct{}{},
+		OverrideSettingsRestoreAfterwards: true,
+		//ScriptArgs:                        nil,
+		SamplerIndex: "Euler a",
+		//ScriptName:                        "",
+		SendImages: true,
+		SaveImages: false,
+		//AlwaysonScripts:                   struct{}{},
+	}
+
+	newBuffer := bytes.NewBuffer([]byte{})
+	jsonEncoder := json.NewEncoder(newBuffer)
+	jsonEncoder.SetEscapeHTML(false)
+	err := jsonEncoder.Encode(txt2ImgRequest)
+	if err != nil {
+		fmt.Println("Unable to convert the struct to a JSON string")
+		return
+	}
+	//fmt.Println(newBuffer.String())
+	//os.Exit(1)
+	payload := strings.NewReader(newBuffer.String())
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, apiUrl, payload)
-
 	if err != nil {
 		fmt.Println(err)
 		return
