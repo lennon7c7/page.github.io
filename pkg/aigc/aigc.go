@@ -10,8 +10,9 @@ import (
 	"os"
 	"page.github.io/pkg/file"
 	"page.github.io/pkg/log"
+	"path"
+	"path/filepath"
 	"strings"
-	"time"
 )
 
 var BaseDownloadImgPath = "../../images/" + file.GetNameWithoutExt() + "/"
@@ -56,13 +57,13 @@ type PngContext struct {
 	Parameters string
 }
 
-func Txt2img() {
+func Txt2img(outputFilename string) {
 	apiUrl := "http://127.0.0.1:7860/sdapi/v1/txt2img"
 	method := "POST"
 
 	txt2ImgRequest := Txt2ImgRequest{
 		SdModelCheckpoint: "chilloutmix.safetensors [fc2511737a]",
-		Prompt:            "<lora:koreanDollLikeness_v15:0.7>, masterpiece, best quality, ((((1girl)))), ((((huge breasts, detail breasts)))), ((((side-tie_bikini)))), ((((looking at viewer)))), ((((closeup)))), ((((detail arms, arms behind head)))), light blush",
+		Prompt:            "<lora:koreanDollLikeness_v15:0.7>, masterpiece, best quality, ((((1girl)))), ((((huge breasts, detail breasts)))), ((((looking at viewer)))), ((((closeup)))), ((((detail arms, arms behind head)))), light blush, ((((sexy lingerie))))",
 		Seed:              -1,
 		Subseed:           -1,
 		BatchSize:         1,
@@ -98,8 +99,6 @@ func Txt2img() {
 		fmt.Println("Unable to convert the struct to a JSON string")
 		return
 	}
-	//fmt.Println(newBuffer.String())
-	//os.Exit(1)
 	payload := strings.NewReader(newBuffer.String())
 
 	client := &http.Client{}
@@ -137,25 +136,26 @@ func Txt2img() {
 		return
 	}
 
-	err = os.MkdirAll(BaseDownloadImgPath, os.ModePerm)
+	filePath := path.Dir(outputFilename)
+	err = os.MkdirAll(filePath, os.ModePerm)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	for _, i2 := range resultData.Images {
-		filePath := BaseDownloadImgPath + time.Now().Format("20060102150405") + "example.jpg"
 		ddd, err := base64.StdEncoding.DecodeString(i2)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
-		err = os.WriteFile(filePath, ddd, os.ModePerm)
+		err = os.WriteFile(outputFilename, ddd, os.ModePerm)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		fmt.Println(filePath)
+		outputFilename, _ = filepath.Abs(outputFilename)
+		fmt.Println(outputFilename)
 	}
 }
