@@ -57,30 +57,36 @@ type PngContext struct {
 	Parameters string
 }
 
-func Txt2img(outputFilename string) {
+func Txt2img(outputFilename string, steps int, seed int) {
+	if file.Exists(outputFilename) {
+		//log.Info("文件已存在，跳过")
+		return
+	}
+
 	apiUrl := "http://127.0.0.1:7860/sdapi/v1/txt2img"
 	method := "POST"
 
 	txt2ImgRequest := Txt2ImgRequest{
 		SdModelCheckpoint: "chilloutmix.safetensors [fc2511737a]",
 		Prompt:            "<lora:koreanDollLikeness_v15:0.7>, masterpiece, best quality, ((((1girl)))), ((((huge breasts, detail breasts)))), ((((looking at viewer)))), ((((closeup)))), ((((detail arms, arms behind head)))), light blush, ((((sexy lingerie))))",
-		Seed:              -1,
-		Subseed:           -1,
-		BatchSize:         1,
-		Steps:             30,
-		CfgScale:          7,
-		Width:             500,
-		Height:            900,
-		RestoreFaces:      false,
-		Tiling:            false,
-		DoNotSaveSamples:  false,
-		DoNotSaveGrid:     false,
-		NegativePrompt:    "lowres, bad anatomy, ((((bad hands)))), bad feet, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
-		Eta:               0,
-		SChurn:            0,
-		STmax:             0,
-		STmin:             0,
-		SNoise:            1,
+		//Seed:              -1,
+		Seed: seed,
+		//Subseed:           -1,
+		BatchSize:        1,
+		Steps:            steps,
+		CfgScale:         7,
+		Width:            480,
+		Height:           880,
+		RestoreFaces:     false,
+		Tiling:           false,
+		DoNotSaveSamples: false,
+		DoNotSaveGrid:    false,
+		NegativePrompt:   "lowres, bad anatomy, ((((bad hands)))), bad feet, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
+		Eta:              0,
+		SChurn:           0,
+		STmax:            0,
+		STmin:            0,
+		SNoise:           1,
 		//OverrideSettings:                  struct{}{},
 		OverrideSettingsRestoreAfterwards: true,
 		//ScriptArgs:                        nil,

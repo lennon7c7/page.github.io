@@ -18,9 +18,10 @@ func TestMain(m *testing.M) {
 
 // go test -timeout 0 -v pkg/aigc/aigc_test.go -run TestTxt2img
 func TestTxt2img(t *testing.T) {
-	for i := 118; i < 99999999; i++ {
-		tag := "sexy lingerie"
-		outputFilename := aigc.BaseDownloadImgPath + strings.ReplaceAll(tag, " ", "-") + "/" + fmt.Sprintf("%08d", i) + ".jpg"
-		aigc.Txt2img(outputFilename)
+	for seed := 0; seed < 99999999; seed++ {
+		steps := 10
+		tag := "sexy lingerie steps " + fmt.Sprintf("%d", steps)
+		outputFilename := aigc.BaseDownloadImgPath + strings.ReplaceAll(tag, " ", "-") + "/" + fmt.Sprintf("%08d", seed) + ".jpg"
+		aigc.Txt2img(outputFilename, steps, seed)
 	}
 }
