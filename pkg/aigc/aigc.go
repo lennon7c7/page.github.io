@@ -13,6 +13,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var BaseDownloadImgPath = "../../images/" + file.GetNameWithoutExt() + "/"
@@ -57,7 +58,7 @@ type PngContext struct {
 	Parameters string
 }
 
-func Txt2img(outputFilename string, steps int, seed int) {
+func Txt2img(prompt string, outputFilename string, steps int, seed int) {
 	if file.Exists(outputFilename) {
 		//log.Info("文件已存在，跳过")
 		return
@@ -68,7 +69,7 @@ func Txt2img(outputFilename string, steps int, seed int) {
 
 	txt2ImgRequest := Txt2ImgRequest{
 		SdModelCheckpoint: "chilloutmix.safetensors [fc2511737a]",
-		Prompt:            "<lora:koreanDollLikeness_v15:0.7>, masterpiece, best quality, ((((1girl)))), ((((huge breasts, detail breasts)))), ((((looking at viewer)))), ((((closeup)))), ((((detail arms, arms behind head)))), light blush, ((((sexy lingerie))))",
+		Prompt:            "<lora:koreanDollLikeness_v15:0.7>, masterpiece, best quality, ((((1girl)))), ((((huge breasts, detail breasts)))), ((((looking at viewer)))), ((((closeup)))), ((((detail arms, arms behind head)))), light blush, ((((" + prompt + "))))",
 		//Seed:              -1,
 		Seed: seed,
 		//Subseed:           -1,
@@ -162,6 +163,6 @@ func Txt2img(outputFilename string, steps int, seed int) {
 		}
 
 		outputFilename, _ = filepath.Abs(outputFilename)
-		fmt.Println(outputFilename)
+		fmt.Println(time.Now().Format("2006-01-02 15:04:05"), outputFilename)
 	}
 }

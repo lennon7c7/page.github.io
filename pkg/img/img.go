@@ -16,6 +16,8 @@ import (
 	"page.github.io/pkg/array"
 	"page.github.io/pkg/file"
 	"path"
+	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -98,6 +100,27 @@ func GetMaxWidthHeight(files []string) (width int, height int) {
 
 		if img1.Bounds().Dy() > height {
 			height = img1.Bounds().Dy()
+		}
+	}
+
+	return
+}
+
+func GetMaxFilename(pathName string) (filenameInt int) {
+	filenameMax := 0
+	files := GetFiles(pathName)
+	for _, tempFile := range files {
+		// 获取文件名带后缀
+		filenameWithSuffix := filepath.Base(tempFile)
+		// 获取文件后缀
+		fileSuffix := path.Ext(filenameWithSuffix)
+		// 获取文件名
+		filenameOnly := strings.TrimSuffix(filenameWithSuffix, fileSuffix)
+
+		// 把文件名转换成数字
+		filenameInt, _ = strconv.Atoi(filenameOnly)
+		if filenameInt > filenameMax {
+			filenameMax = filenameInt
 		}
 	}
 
