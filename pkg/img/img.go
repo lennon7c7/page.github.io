@@ -108,6 +108,11 @@ func GetMaxWidthHeight(files []string) (width int, height int) {
 
 func GetMaxFilename(pathName string) (filenameInt int) {
 	filenameMax := 0
+
+	if !file.Exists(pathName) {
+		return
+	}
+
 	files := GetFiles(pathName)
 	for _, tempFile := range files {
 		// 获取文件名带后缀

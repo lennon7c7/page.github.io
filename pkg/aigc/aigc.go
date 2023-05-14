@@ -69,7 +69,7 @@ func Txt2img(prompt string, outputFilename string, steps int, seed int) {
 
 	txt2ImgRequest := Txt2ImgRequest{
 		SdModelCheckpoint: "chilloutmix.safetensors [fc2511737a]",
-		Prompt:            "<lora:koreanDollLikeness_v15:0.7>, masterpiece, best quality, ((((1girl)))), ((((huge breasts, detail breasts)))), ((((looking at viewer)))), ((((closeup)))), ((((detail arms, arms behind head)))), light blush, ((((" + prompt + "))))",
+		Prompt:            "((((sfw)))), <lora:koreanDollLikeness_v15:0.7>, masterpiece, best quality, ((((1girl)))), ((((huge breasts, detail breasts)))), ((((looking at viewer)))), ((((closeup)))), ((((detail arms, arms behind head)))), light blush, ((((" + prompt + "))))",
 		//Seed:              -1,
 		Seed: seed,
 		//Subseed:           -1,

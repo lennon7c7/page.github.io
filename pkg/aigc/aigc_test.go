@@ -18,7 +18,15 @@ func TestMain(m *testing.M) {
 }
 
 func TestTxt2img(t *testing.T) {
-	prompt := "cardigan"
+	prompt := "wedding dress"
+	prompt = "lucency full dress"
+	prompt = "cropped jacket"
+	prompt = "revealing dress"
+	prompt = "v-neck shirts"
+	//prompt = "Sailor dress"
+	prompt = "hoodie"
+	//prompt = "robe"
+	//prompt = "cape"
 	steps := 30
 	pathName := aigc.BaseDownloadImgPath + strings.ReplaceAll(prompt+" steps "+fmt.Sprintf("%d", steps), " ", "-")
 
@@ -26,6 +34,7 @@ func TestTxt2img(t *testing.T) {
 	if minSeed > 0 {
 		minSeed++
 	}
+	fmt.Printf("minSeed: %v\n", minSeed)
 	for seed := minSeed; seed < 99999999; seed++ {
 		outputFilename := pathName + "/" + fmt.Sprintf("%08d", seed) + ".jpg"
 		aigc.Txt2img(prompt, outputFilename, steps, seed)
