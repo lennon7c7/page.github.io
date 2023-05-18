@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"page.github.io/pkg/file"
+	"page.github.io/pkg/img"
 	"page.github.io/pkg/log"
 	"path"
 	"path/filepath"
@@ -165,4 +167,84 @@ func Txt2img(prompt string, outputFilename string, steps int, seed int) {
 		outputFilename, _ = filepath.Abs(outputFilename)
 		fmt.Println(time.Now().Format("2006-01-02 15:04:05"), outputFilename)
 	}
+}
+
+func ImgRemoveBackgroundByBase64(inputImgBase64 string) (outputImgBase64 string, err error) {
+	apiUrl := "http://192.168.31.238:7860/sdapi/v1/extra-single-image"
+	method := "POST"
+
+	payload := strings.NewReader(`{
+  "resize_mode": 0,
+  "show_extras_results": true,
+  "gfpgan_visibility": 0,
+  "codeformer_visibility": 0,
+  "codeformer_weight": 0,
+  "upscaling_resize": 2,
+  "upscaling_resize_w": 512,
+  "upscaling_resize_h": 512,
+  "upscaling_crop": true,
+  "upscaler_1": "None",
+  "upscaler_2": "None",
+  "extras_upscaler_2_visibility": 0,
+  "upscale_first": false,
+  "image": "` + inputImgBase64 + `"
+}`)
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, apiUrl, payload)
+	if err != nil {
+		return
+	}
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		closeErr := Body.Close()
+		if closeErr != nil {
+			err = closeErr
+		}
+	}(res.Body)
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return
+	}
+
+	type Response struct {
+		// 正常返回
+		HtmlInfo string `json:"html_info"`
+		Image    string `json:"image"`
+
+		// 错误返回
+		Error  string `json:"error"`
+		Detail string `json:"detail"`
+		Body   string `json:"body"`
+		Errors string `json:"errors"`
+	}
+
+	var resultData Response
+	err = json.Unmarshal(body, &resultData)
+	if err != nil {
+		return
+	}
+
+	if resultData.Detail != "" {
+		err = errors.New(resultData.Detail)
+		return
+	}
+
+	outputImgBase64 = resultData.Image
+	return
+}
+
+func ImgRemoveBackgroundByUrl(inputImgUrl string) (outputImgBase64 string, err error) {
+	inputImgBase64, err := img.Url2Base64(inputImgUrl)
+
+	outputImgBase64, err = ImgRemoveBackgroundByBase64(inputImgBase64)
+
+	return
 }

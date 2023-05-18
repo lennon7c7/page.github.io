@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/golang/freetype"
+	"github.com/melbahja/got"
 	"github.com/nfnt/resize"
 	"image"
 	"image/color"
@@ -19,6 +20,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var ExtList = []string{".jpg", ".jpeg", ".png", ".webp"}
@@ -339,4 +341,41 @@ func BatchMaxImageWidthHeight(dirName string) {
 		MaxImageWidthHeight(x, y, tempFile)
 	}
 
+}
+
+func Url2File(inputImgUrl string, outputImgFile string) (err error) {
+	filePath := path.Dir(outputImgFile)
+	err = os.MkdirAll(filePath, os.ModePerm)
+	if err != nil {
+		return
+	}
+
+	err = got.New().Download(inputImgUrl, outputImgFile)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func Url2Base64(inputImgUrl string) (outputImgBase64 string, err error) {
+	outputImgFile := time.Now().Format("20060102150405")
+	err = Url2File(inputImgUrl, outputImgFile)
+	if err != nil {
+		return
+	}
+
+	srcByte, err := os.ReadFile(outputImgFile)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	outputImgBase64 = base64.StdEncoding.EncodeToString(srcByte)
+
+	err = os.Remove(outputImgFile)
+	if err != nil {
+		return
+	}
+
+	return
 }

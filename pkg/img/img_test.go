@@ -116,3 +116,10 @@ func TestCutBorder(t *testing.T) {
 	border := 100
 	_ = img.CutBorder(input, output, border)
 }
+
+func TestUrl2File(t *testing.T) {
+	input := "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png"
+	output := "../../images/baidu.png"
+	err := img.Url2File(input, output)
+	fmt.Println(err)
+}
