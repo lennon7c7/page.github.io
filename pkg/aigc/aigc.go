@@ -84,7 +84,7 @@ func Txt2img(prompt string, outputFilename string, steps int, seed int) {
 		Tiling:           false,
 		DoNotSaveSamples: false,
 		DoNotSaveGrid:    false,
-		NegativePrompt:   "lowres, bad anatomy, ((((bad hands)))), bad feet, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
+		NegativePrompt:   "((((nsfw)))), lowres, bad anatomy, ((((bad hands)))), bad feet, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
 		Eta:              0,
 		SChurn:           0,
 		STmax:            0,
