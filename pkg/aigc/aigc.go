@@ -167,7 +167,9 @@ func Txt2img(prompt string, outputFilename string, steps int, seed int) {
 		//OverrideSettings:                  struct{}{},
 		OverrideSettingsRestoreAfterwards: true,
 		//ScriptArgs:                        nil,
-		SamplerIndex: "Euler a",
+		//SamplerIndex: "Euler a",
+		// DPM adpative最快成型，但后面就缺乏变化，感觉适合快速试验提示词组合
+		SamplerIndex: "DPM++ SDE Karras",
 		//ScriptName:                        "",
 		SendImages: true,
 		SaveImages: false,
