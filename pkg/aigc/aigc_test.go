@@ -18,6 +18,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestTxt2img(t *testing.T) {
+	definedCheckpoint := "chilloutmix.safetensors [fc2511737a]"
+
 	prompt := "wedding dress"
 	prompt = "lucency full dress"
 	prompt = "cropped jacket"
@@ -36,8 +38,33 @@ func TestTxt2img(t *testing.T) {
 	}
 	fmt.Printf("minSeed: %v\n", minSeed)
 	for seed := minSeed; seed < 99999999; seed++ {
+		options, err := aigc.GetOptions()
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		if options.SdModelCheckpoint != definedCheckpoint {
+			err = aigc.PostOptions(aigc.OptionsResponse{
+				SdModelCheckpoint: definedCheckpoint,
+			})
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+		}
+
 		outputFilename := pathName + "/" + fmt.Sprintf("%08d", seed) + ".jpg"
 		aigc.Txt2img(prompt, outputFilename, steps, seed)
+
+		// restore
+		if options.SdModelCheckpoint != definedCheckpoint {
+			err = aigc.PostOptions(options)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+		}
 	}
 }
 

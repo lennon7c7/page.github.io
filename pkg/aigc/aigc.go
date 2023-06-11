@@ -19,6 +19,11 @@ import (
 )
 
 var BaseDownloadImgPath = "../../images/" + file.GetNameWithoutExt() + "/"
+var UrlStableDiffusion = "http://127.0.0.1:7860/"
+
+type OptionsResponse struct {
+	SdModelCheckpoint string `json:"sd_model_checkpoint"`
+}
 
 type Txt2ImgRequest struct {
 	SdModelCheckpoint string `json:"sd_model_checkpoint"`
@@ -60,18 +65,87 @@ type PngContext struct {
 	Parameters string
 }
 
+func GetOptions() (options OptionsResponse, err error) {
+	apiUrl := UrlStableDiffusion + "sdapi/v1/options"
+	method := "GET"
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, apiUrl, nil)
+
+	if err != nil {
+		return
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		closeErr := Body.Close()
+		if closeErr != nil {
+			err = closeErr
+		}
+	}(res.Body)
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(body, &options)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func PostOptions(options OptionsResponse) (err error) {
+	apiUrl := UrlStableDiffusion + "sdapi/v1/options"
+	method := "POST"
+
+	optionsRequest := options
+	newBuffer := bytes.NewBuffer([]byte{})
+	jsonEncoder := json.NewEncoder(newBuffer)
+	jsonEncoder.SetEscapeHTML(false)
+	err = jsonEncoder.Encode(optionsRequest)
+	if err != nil {
+		return
+	}
+	payload := strings.NewReader(newBuffer.String())
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, apiUrl, payload)
+	if err != nil {
+		return
+	}
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		closeErr := Body.Close()
+		if closeErr != nil {
+			err = closeErr
+		}
+	}(res.Body)
+
+	return
+}
+
 func Txt2img(prompt string, outputFilename string, steps int, seed int) {
 	if file.Exists(outputFilename) {
 		//log.Info("文件已存在，跳过")
 		return
 	}
 
-	apiUrl := "http://127.0.0.1:7860/sdapi/v1/txt2img"
+	apiUrl := UrlStableDiffusion + "sdapi/v1/txt2img"
 	method := "POST"
 
 	txt2ImgRequest := Txt2ImgRequest{
-		SdModelCheckpoint: "chilloutmix.safetensors [fc2511737a]",
-		Prompt:            "((((sfw)))), <lora:koreanDollLikeness_v15:0.7>, masterpiece, best quality, ((((1girl)))), ((((huge breasts, detail breasts)))), ((((looking at viewer)))), ((((closeup)))), ((((detail arms)))), light blush, ((((" + prompt + "))))",
+		Prompt: "((((sfw)))), <lora:koreanDollLikeness_v15:0.7>, masterpiece, best quality, ((((1girl)))), ((((huge breasts, detail breasts)))), ((((looking at viewer)))), ((((closeup)))), ((((detail arms)))), light blush, ((((" + prompt + "))))",
 		//Seed:              -1,
 		Seed: seed,
 		//Subseed:           -1,
