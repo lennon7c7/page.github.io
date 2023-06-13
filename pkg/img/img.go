@@ -11,7 +11,9 @@ import (
 	"image/color"
 	"image/draw"
 	"image/jpeg"
+	"image/png"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"page.github.io/pkg/array"
@@ -20,7 +22,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 )
 
 var ExtList = []string{".jpg", ".jpeg", ".png", ".webp"}
@@ -358,21 +359,48 @@ func Url2File(inputImgUrl string, outputImgFile string) (err error) {
 	return
 }
 
-func Url2Base64(inputImgUrl string) (outputImgBase64 string, err error) {
-	outputImgFile := time.Now().Format("20060102150405")
-	err = Url2File(inputImgUrl, outputImgFile)
+func GenerateMask(output string) (outputImgBase64 string, err error) {
+	// 创建一个黑色背景的图像
+	rect := image.Rect(0, 0, 1024, 1024)
+
+	img := image.NewRGBA(rect)
+	draw.Draw(img, img.Bounds(), &image.Uniform{C: color.Black}, image.ZP, draw.Src)
+
+	// bbox: [100, 200, 597, 104]
+	// 定义长方形的位置和大小
+	x1 := 100
+	y1 := 200
+	width1 := 597
+	height1 := 104
+
+	// 在图像上绘制长方形
+	draw.Draw(img, image.Rect(x1, y1, x1+width1, y1+height1), &image.Uniform{C: color.White}, image.ZP, draw.Src)
+
+	// 在图像上绘制圆形
+	centerX := 900
+	centerY := 900
+	radius := 50
+	for x := centerX - radius; x <= centerX+radius; x++ {
+		for y := centerY - radius; y <= centerY+radius; y++ {
+			if math.Pow(float64(x-centerX), 2)+math.Pow(float64(y-centerY), 2) <= math.Pow(float64(radius), 2) {
+				img.Set(x, y, color.Gray16{Y: 0xffff})
+			}
+		}
+	}
+
+	// 将图像保存为PNG文件
+	filePoint, err := os.Create(output)
 	if err != nil {
 		return
 	}
+	defer func(file *os.File) {
+		closeErr := file.Close()
+		if closeErr != nil {
+			err = closeErr
+		}
+	}(filePoint)
 
-	srcByte, err := os.ReadFile(outputImgFile)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	outputImgBase64 = base64.StdEncoding.EncodeToString(srcByte)
-
-	err = os.Remove(outputImgFile)
+	err = png.Encode(filePoint, img)
 	if err != nil {
 		return
 	}

@@ -123,3 +123,8 @@ func TestUrl2File(t *testing.T) {
 	err := img.Url2File(input, output)
 	fmt.Println(err)
 }
+
+func TestGenerateMask(t *testing.T) {
+	output := "../../images/rectangle.png"
+	t.Log(img.GenerateMask(output))
+}
