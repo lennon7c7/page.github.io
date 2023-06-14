@@ -125,6 +125,12 @@ func TestUrl2File(t *testing.T) {
 }
 
 func TestGenerateMask(t *testing.T) {
-	output := "../../images/rectangle.png"
-	t.Log(img.GenerateMask(output))
+	imgWidth := 1024
+	imgHeight := 1024
+	// bbox: [100, 200, 597, 104]
+	maskX := 332
+	maskY := 136
+	maskWidth := 359
+	maskHeight := 499
+	t.Log(img.GenerateRectMask(imgWidth, imgHeight, maskX, maskY, maskWidth, maskHeight))
 }

@@ -1,6 +1,7 @@
 package img
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -13,7 +14,6 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
-	"math"
 	"net/http"
 	"os"
 	"page.github.io/pkg/array"
@@ -381,36 +381,18 @@ func Url2Base64(inputImgUrl string) (outputImgBase64 string, err error) {
 	return
 }
 
-func GenerateMask(output string) (outputImgBase64 string, err error) {
+func GenerateRectMask(imgWidth int, imgHeight int, maskX int, maskY int, maskWidth int, maskHeight int) (outputImgBase64 string, err error) {
 	// 创建一个黑色背景的图像
-	rect := image.Rect(0, 0, 1024, 1024)
+	rect := image.Rect(0, 0, imgWidth, imgHeight)
 
 	img := image.NewRGBA(rect)
-	draw.Draw(img, img.Bounds(), &image.Uniform{C: color.Black}, image.ZP, draw.Src)
-
-	// bbox: [100, 200, 597, 104]
-	// 定义长方形的位置和大小
-	x1 := 100
-	y1 := 200
-	width1 := 597
-	height1 := 104
+	draw.Draw(img, img.Bounds(), &image.Uniform{C: color.Black}, image.Point{}, draw.Src)
 
 	// 在图像上绘制长方形
-	draw.Draw(img, image.Rect(x1, y1, x1+width1, y1+height1), &image.Uniform{C: color.White}, image.ZP, draw.Src)
-
-	// 在图像上绘制圆形
-	centerX := 900
-	centerY := 900
-	radius := 50
-	for x := centerX - radius; x <= centerX+radius; x++ {
-		for y := centerY - radius; y <= centerY+radius; y++ {
-			if math.Pow(float64(x-centerX), 2)+math.Pow(float64(y-centerY), 2) <= math.Pow(float64(radius), 2) {
-				img.Set(x, y, color.Gray16{Y: 0xffff})
-			}
-		}
-	}
+	draw.Draw(img, image.Rect(maskX, maskY, maskX+maskWidth, maskY+maskHeight), &image.Uniform{C: color.White}, image.Point{}, draw.Src)
 
 	// 将图像保存为PNG文件
+	output := fmt.Sprintf("./%d.png", time.Now().Unix())
 	filePoint, err := os.Create(output)
 	if err != nil {
 		return
@@ -420,8 +402,19 @@ func GenerateMask(output string) (outputImgBase64 string, err error) {
 		if closeErr != nil {
 			err = closeErr
 		}
+
+		_ = os.Remove(output)
 	}(filePoint)
 
+	// 将图像转换为字节切片
+	buf := new(bytes.Buffer)
+	err = png.Encode(buf, img)
+	if err != nil {
+		return
+	}
+
+	// 将字节切片转换为 Base64 编码的字符串
+	outputImgBase64 = base64.StdEncoding.EncodeToString(buf.Bytes())
 	err = png.Encode(filePoint, img)
 	if err != nil {
 		return
