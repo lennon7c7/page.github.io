@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>img2img-inpaint</title>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <script src="/static/js/bootstrap.bundle.js"></script>
+    <script src="/static/js/jquery-2.1.1.js"></script>
+    <script src="/static/js/vue.global.js"></script>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div>
+        <label>原图<input @change="handleFileChangeOrigin" accept="image/*" type="file"/></label>
+        <img :src="imgOriginBase64" alt="" style="width: 200px" v-if="imgOriginBase64"/>
+
+        <label>蒙版<input @change="handleFileChangeMask" accept="image/*" type="file"/></label>
+        <img :src="imgMaskBase64" alt="" style="width: 200px" v-if="imgMaskBase64"/>
+
+        <label>参数<textarea @keydown.enter="handleAjax" cols="50" rows="10"
+                             v-model="postParams"></textarea></label>
+
+        <button @click="handleAjax">生成</button>
+    </div>
+
+    <div>
+        <img :src="imgResponseBase64" alt="" v-if="imgResponseBase64"/>
+    </div>
+</div>
+</body>
+<script>
+    const {createApp} = Vue
+
+    // noinspection JSUnusedGlobalSymbols
+    createApp({
+        data() {
+            return {
+                imgOriginBase64: null,
+                imgMaskBase64: null,
+                imgResponseBase64: null,
+                postParams: JSON.stringify({
+                    "prompt": "cat",
+                    "negative_prompt": "",
+                    "seed": 1,
+                    "batch_size": 1,
+                    "n_iter": 1,
+                    "steps": 20,
+                    "cfg_scale": 7,
+                    "width": 512,
+                    "height": 512,
+                    "restore_faces": false,
+                    "tiling": false,
+                    "eta": 0,
+                    "script_args": [],
+                    "sampler_index": "Euler a",
+                    "resize_mode": 1,
+                    "denoising_strength": 0.75,
+                    "mask_blur": 10,
+                    "init_images": [
+                        ""
+                    ],
+                    "mask": ""
+                }, false, 2),
+            }
+        },
+        created() {
+
+        },
+        methods: {
+            handleFileChangeOrigin(event) {
+                const file = event.target.files[0];
+                if (!file) {
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                    this.imgOriginBase64 = reader.result;
+                    let paramsJson = JSON.parse(this.postParams);
+                    paramsJson.init_images[0] = reader.result;
+                    this.postParams = JSON.stringify(paramsJson, false, 2)
+                };
+                reader.readAsDataURL(file);
+            },
+            handleFileChangeMask(event) {
+                const file = event.target.files[0];
+                if (!file) {
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                    this.imgMaskBase64 = reader.result;
+                    let paramsJson = JSON.parse(this.postParams);
+                    paramsJson.mask = reader.result;
+                    this.postParams = JSON.stringify(paramsJson, false, 2)
+                };
+                reader.readAsDataURL(file);
+            },
+            handleAjax() {
+                let that = this
+                let settings = {
+                    "url": "/img2img",
+                    "method": "POST",
+                    "timeout": 0,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "data": this.postParams,
+                };
+
+                $.ajax(settings).done(function (response) {
+                    if (response.msg) {
+                        alert(response.msg)
+                        console.error(response.msg)
+                    }
+
+                    if (response.data.images) {
+                        that.imgResponseBase64 = response.data.images[0]
+                    }
+                });
+            },
+        },
+    }).mount('#app')
+</script>
+</html>

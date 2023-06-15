@@ -1,3 +1,15 @@
+pholcus_pkg/file_out/
+pholcus_pkg/cache/
+pholcus_pkg/history/
+pholcus_pkg/text_out/
+pholcus_pkg/logs/
+configs.json
+./main.go
+main.go
+rsa_private_key.pem
+rsa_public_key.pem
+tmp/*
+tools/codegen/dist
 _drafts/
 _site/
 desktop.ini

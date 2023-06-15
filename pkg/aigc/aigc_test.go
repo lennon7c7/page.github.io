@@ -45,6 +45,7 @@ func TestTxt2img(t *testing.T) {
 		}
 
 		if options.SdModelCheckpoint != definedCheckpoint {
+			fmt.Printf("options.SdModelCheckpoint != definedCheckpoint: %v\n", options.SdModelCheckpoint != definedCheckpoint)
 			err = aigc.PostOptions(aigc.OptionsResponse{
 				SdModelCheckpoint: definedCheckpoint,
 			})
@@ -59,6 +60,7 @@ func TestTxt2img(t *testing.T) {
 
 		// restore
 		if options.SdModelCheckpoint != definedCheckpoint {
+			fmt.Printf("options.SdModelCheckpoint != definedCheckpoint: %v\n", options.SdModelCheckpoint != definedCheckpoint)
 			err = aigc.PostOptions(options)
 			if err != nil {
 				fmt.Println(err)

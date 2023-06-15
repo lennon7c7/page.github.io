@@ -1,0 +1,52 @@
+{
+  "GinMode": "release",
+  "AutoReload": false,
+  "ShowSwagger": false,
+  "Domain": {
+    "Api": "",
+    "H5": "",
+    "Backend": ""
+  },
+  "Http": {
+    "Port": 31051
+  },
+  "Https": {
+    "On": true,
+    "Port": 443,
+    "Host": "localhost"
+  },
+  "DB": {
+    "DriverName": "mysql",
+    "DataSourceName": "root:root@tcp(127.0.0.1:3306)/page.github.io?charset=utf8mb4&parseTime=True&loc=Local",
+    "ShowSQL": false,
+    "SQLLogFile": "sql.log"
+  },
+  "File": {
+    "WebUploadRoot": "${currentDir}/upload",
+    "WebRelativePath": "/upload"
+  },
+  "Static": {
+    "MP_verify_hi9fRa6Zt3G6aeSg.txt": "./MP_verify_hi9fRa6Zt3G6aeSg.txt"
+  },
+  "Openai": {
+    "ApiKey": "sk-"
+  },
+  "JWT": {
+    "SkipPaths": [
+      "/img2img",
+      "/generate-mask",
+      "/remove-img-background",
+      "/static",
+      "/swagger",
+      "/doc.json",
+      "/user/login"
+    ],
+    "AccessTokenExpires": 6048000,
+    "RefreshTokenExpires": 25920000,
+    "PrivateKey": "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA2WvLEFqPXOlp4h4QxlRwS/CNhyBk6yRGmRh6e0U6wQ3h4RJ7\nH0bGFCQo/K1JEeQXly5Zkh8pWzBA/cfiknrNQWodGastUGRHfZrB6Gq9eWNEPOTj\n6ZGDmNyktxMmfY/yEkK/XBhgda6uDAT+jcMfn6KjKp3kt2rZkyrFnV1EIp4JI2Dz\nlX2b0emSFOeOyB3Uap61aa8WTSW/wfGdlSOnRTLHh+FDMT6qzqAJ+dXsGPOC/I43\nWSR1TwUn3tLzLvIO9Zy/fr3GQ0vbn16wkC+sExBx7FfNCqzLYIueBMuticlml1BM\n4jnaU/DtUzNuVTrhkiZiLtyx9g/NTU1OUQioKwIDAQABAoIBAAk4K+0umeOrtiSz\nd6yhSf2+XpH7Sqw55pB5XEA76EjlaM2ddgEWhDG4ctB8HJwYmvN7MKskjSFjw22/\nexkRAgEjGcbL3mkJR4rI9C4B0LUEA5G9dvihhf4GZSmqMzih0Pb7Q5gJJJX46UJz\nN8QVIRMo11hoR5mLe1xlNOn+WXRKQS/MnoAoMr94cO8Z69fVCV08L7AouzVqfPDv\nT0C0Ux1tRhkqlS07Cd2+lORXuYDODPgiUNfJbAwNvCavFi4ZAbpLEwXou/CZd6fA\nFscdRegz9TF5Gs6Hmu46jENF1YuMZve2TBXSR957giqnW7LwDCjCVXX2qf4xfFnL\nVEqigbkCgYEA//ZF4SjACmEmYPtk9gQJEu5WZVGttZltrmeJ2ysUIjGYGOTDuvwU\nrkl9xxfpFFUE2RxPuwtOzF504iY8u4D+EV91PdMfhfV5g+A7ICaYGzK3f9j1CjnR\nxlSHnn5pQs43Gp2vki+us9QhoVUNzzd/1Q83lcZpuEprUzALPzRXtKcCgYEA2XQO\nPV+Axy04svApbiMo0duTTiCgP/xt4POTruI5LKovCct+OdTJh0WfTQXLgoGOJKd4\n5DSRyH4r1+BEtEzXiq+Y9/QL4yP2PvJJ7eUenHCG4HDzo577IIOK6GtibwbuF6QG\nQ3viDCzGfFctmnufrjLtfRDU/pDiPTKRLoczLN0CgYA7+XyOMXot9G2Fs+IIMxHd\nObNMskK9lmG4x9HpZMKm8G/vBUtHeOFvpRCvoc6fUPx90sBr105zXH6Ort70IFln\nwLI79kggn1AFsnioI+LoHI4air9/0eRxUEUmwf/wA1muBtyoqDuLL11h7Af8UcjG\nJ3aixYboA6f6Kfu4p48VaQKBgDPtVOEvBy+JCvsgAqS8XKkQiDKl896TxyFqyR+A\nAis6UJVENNZWi/FznMDl211E1s7F90Z3j0CTcKDSe1Wa6/XATQUZECWjltAdR645\ngn/VF0BNeMDf3BQ9lVQ/IHhm7UBT+PLwiGBj6NoUb11unAkbPD8bX+GSc5QtmSHF\nQ2E5AoGBALLAEG5BGwiddHHB+d8yVOfkjgjLYM6a+uYWdJkAgTZAC7rMoONX+Pcd\n9CXCikVeurml6cTlgUo1tMkumbrja23MnUQM3hkmj07OSmqd6vlxX/Ys+9Zxy9Xq\n8j7AoMpdRHfGQ+3uVgmqGQj8QA3pgeztHUQSrIamoAj+RCkYWv4H\n-----END RSA PRIVATE KEY-----\n",
+    "PublicKey": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2WvLEFqPXOlp4h4QxlRw\nS/CNhyBk6yRGmRh6e0U6wQ3h4RJ7H0bGFCQo/K1JEeQXly5Zkh8pWzBA/cfiknrN\nQWodGastUGRHfZrB6Gq9eWNEPOTj6ZGDmNyktxMmfY/yEkK/XBhgda6uDAT+jcMf\nn6KjKp3kt2rZkyrFnV1EIp4JI2DzlX2b0emSFOeOyB3Uap61aa8WTSW/wfGdlSOn\nRTLHh+FDMT6qzqAJ+dXsGPOC/I43WSR1TwUn3tLzLvIO9Zy/fr3GQ0vbn16wkC+s\nExBx7FfNCqzLYIueBMuticlml1BM4jnaU/DtUzNuVTrhkiZiLtyx9g/NTU1OUQio\nKwIDAQAB\n-----END PUBLIC KEY-----\n"
+  },
+  "Casbin": {
+    "Model": "[request_definition]\nr = sub, obj, act\n\n[policy_definition]\np = sub, obj, act\n\n[role_definition]\ng = _, _\n\n[policy_effect]\ne = some(where (p.eft == allow))\n\n[matchers]\nm = g(r.sub, p.sub) && r.obj == p.obj && r.act == p.act"
+  }
+}
