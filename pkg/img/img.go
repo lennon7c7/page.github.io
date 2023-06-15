@@ -448,3 +448,30 @@ func GenerateRectMask(imgWidth int, imgHeight int, maskX int, maskY int, maskWid
 
 	return
 }
+
+// GetImageSizeFromBase64 获取 Base64 编码图片的宽度和高度
+func GetImageSizeFromBase64(base64Str string) (width int, height int, err error) {
+	substr := ","
+	if strings.Contains(base64Str, substr) {
+		// 兼容
+		base64Str = strings.Split(base64Str, substr)[1]
+	}
+
+	// 将 Base64 编码转换为字节数组
+	data, err := base64.StdEncoding.DecodeString(base64Str)
+	if err != nil {
+		return
+	}
+
+	// 解码图片
+	img, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return
+	}
+
+	// 获取图片宽度和高度
+	width = img.Bounds().Dx()
+	height = img.Bounds().Dy()
+
+	return
+}

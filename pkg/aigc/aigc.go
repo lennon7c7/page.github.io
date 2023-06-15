@@ -412,6 +412,11 @@ func ImgRemoveBackgroundByUrl(inputImgUrl string) (outputImgBase64 string, err e
 }
 
 func GenerateMask(inputImgBase64 string) (outputImgBase64 string, err error) {
+	imgWidth, imgHeight, err := img.GetImageSizeFromBase64(inputImgBase64)
+	if err != nil {
+		return
+	}
+
 	imgBase64RemoveBackground, err := ImgRemoveBackgroundByBase64(inputImgBase64)
 	if err != nil {
 		return
@@ -433,7 +438,7 @@ func GenerateMask(inputImgBase64 string) (outputImgBase64 string, err error) {
 	}
 	bBox := responses[1].Bbox
 
-	imgWidth, imgHeight, maskX, maskY, maskWidth, maskHeight := int(responses[0].Bbox[2]), int(responses[0].Bbox[3]), int(bBox[0]), int(bBox[1]), int(bBox[2]), int(bBox[3])
+	maskX, maskY, maskWidth, maskHeight := int(bBox[0]), int(bBox[1]), int(bBox[2]), int(bBox[3])
 	outputImgBase64, err = img.GenerateRectMask(imgWidth, imgHeight, maskX, maskY, maskWidth, maskHeight)
 	if err != nil {
 		return

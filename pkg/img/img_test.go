@@ -134,3 +134,29 @@ func TestGenerateMask(t *testing.T) {
 	maskHeight := 499
 	t.Log(img.GenerateRectMask(imgWidth, imgHeight, maskX, maskY, maskWidth, maskHeight))
 }
+
+func TestGetImageSizeFromBase64(t *testing.T) {
+	inputImgFile := "https://segment-anything.com/assets/gallery/GettyImages-1191014275.jpg"
+	outputImgBase64, err := img.Http2Base64(inputImgFile)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	width, height, err := img.GetImageSizeFromBase64(outputImgBase64)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// 2500 1661
+	if width != 2500 {
+		t.Error("width != 2500")
+		return
+	}
+
+	if height != 1661 {
+		t.Error("height != 1661")
+		return
+	}
+}
