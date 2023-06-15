@@ -360,7 +360,7 @@ func Url2File(inputImgUrl string, outputImgFile string) (err error) {
 	return
 }
 
-func Url2Base64(inputImgUrl string) (outputImgBase64 string, err error) {
+func File2Base64(inputImgUrl string) (outputImgBase64 string, err error) {
 	outputImgFile := time.Now().Format("20060102150405")
 	err = Url2File(inputImgUrl, outputImgFile)
 	if err != nil {
@@ -377,6 +377,32 @@ func Url2Base64(inputImgUrl string) (outputImgBase64 string, err error) {
 	if err != nil {
 		return
 	}
+
+	return
+}
+
+func Http2Base64(inputImgUrl string) (outputImgBase64 string, err error) {
+	// 发送 HTTP GET 请求，获取网络图片
+	resp, err := http.Get(inputImgUrl)
+	if err != nil {
+		return
+	}
+	defer func() {
+		closeErr := resp.Body.Close()
+		if closeErr != nil {
+			err = closeErr
+		}
+	}()
+
+	// 读取图片内容
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// 将图片内容进行 Base64 编码
+	outputImgBase64 = base64.StdEncoding.EncodeToString(data)
 
 	return
 }

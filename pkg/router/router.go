@@ -16,4 +16,6 @@ func NewRouter(router *gin.Engine, config *config.Config) {
 	router.Static(config.File.WebRelativePath, config.File.WebUploadRoot) //文件访问
 
 	router.POST("img2img", aigc.RouterImg2Img)
+	router.POST("generate-mask", aigc.RouterGenerateMask)
+	router.POST("remove-img-background", aigc.RouterImgRemoveBackgroundByBase64)
 }

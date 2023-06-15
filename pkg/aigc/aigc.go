@@ -90,6 +90,15 @@ type PngContext struct {
 	Parameters string
 }
 
+type SegmentAnythingResponse struct {
+	EncodedMask  string    `json:"encodedMask"`
+	Bbox         []float64 `json:"bbox"`
+	Score        float64   `json:"score"`
+	PointCoord   []float64 `json:"point_coord"`
+	UncertainIou float64   `json:"uncertain_iou"`
+	Area         int       `json:"area"`
+}
+
 func GetOptions() (options OptionsResponse, err error) {
 	apiUrl := UrlStableDiffusion + "sdapi/v1/options"
 	method := "GET"
@@ -323,7 +332,7 @@ func Img2img(request Img2ImgRequest) (response Txt2ImgResponse, err error) {
 }
 
 func ImgRemoveBackgroundByBase64(inputImgBase64 string) (outputImgBase64 string, err error) {
-	apiUrl := "http://192.168.31.238:7860/sdapi/v1/extra-single-image"
+	apiUrl := UrlStableDiffusion + "sdapi/v1/extra-single-image"
 	method := "POST"
 
 	payload := strings.NewReader(`{
@@ -395,9 +404,88 @@ func ImgRemoveBackgroundByBase64(inputImgBase64 string) (outputImgBase64 string,
 }
 
 func ImgRemoveBackgroundByUrl(inputImgUrl string) (outputImgBase64 string, err error) {
-	inputImgBase64, err := img.Url2Base64(inputImgUrl)
+	inputImgBase64, err := img.File2Base64(inputImgUrl)
 
 	outputImgBase64, err = ImgRemoveBackgroundByBase64(inputImgBase64)
+
+	return
+}
+
+func GenerateMask(inputImgBase64 string) (outputImgBase64 string, err error) {
+	imgBase64RemoveBackground, err := ImgRemoveBackgroundByBase64(inputImgBase64)
+	if err != nil {
+		return
+	}
+
+	responses, err := ApiSegmentAnything(imgBase64RemoveBackground)
+	if err != nil {
+		return
+	}
+
+	if len(responses) < 2 {
+		err = errors.New(`len(responses) < 2`)
+		return
+	}
+
+	if len(responses[1].Bbox) < 4 {
+		err = errors.New(`len(responses[1].Bbox) < 4`)
+		return
+	}
+	bBox := responses[1].Bbox
+
+	imgWidth, imgHeight, maskX, maskY, maskWidth, maskHeight := int(responses[0].Bbox[2]), int(responses[0].Bbox[3]), int(bBox[0]), int(bBox[1]), int(bBox[2]), int(bBox[3])
+	outputImgBase64, err = img.GenerateRectMask(imgWidth, imgHeight, maskX, maskY, maskWidth, maskHeight)
+	if err != nil {
+		return
+	}
+
+	outputImgBase64 = "data:image/png;base64," + outputImgBase64
+
+	return
+}
+
+// ApiSegmentAnything 细分任何内容
+// @demo https://segment-anything.com/demo
+func ApiSegmentAnything(base64Img string) (responses []SegmentAnythingResponse, err error) {
+	decoded, err := base64.StdEncoding.DecodeString(base64Img)
+	if err != nil {
+		return
+	}
+
+	// 将字节数组转换为缓冲区
+	buffer := bytes.NewBuffer(decoded)
+
+	// 创建一个 POST 请求
+	apiUrl := "https://model-zoo.metademolab.com/predictions/automatic_masks"
+	req, err := http.NewRequest("POST", apiUrl, buffer)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "image/jpg")
+
+	// 发送请求
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer func() {
+		closeErr := resp.Body.Close()
+		if closeErr != nil {
+			err = closeErr
+		}
+	}()
+
+	// 读取响应数据
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(body, &responses)
+	if err != nil {
+		return
+	}
 
 	return
 }
@@ -417,5 +505,41 @@ func RouterImg2Img(c *gin.Context) {
 
 	util.OKData(c, gin.H{
 		"images": response.Images,
+	})
+}
+
+func RouterImgRemoveBackgroundByBase64(c *gin.Context) {
+	base64Img := c.PostForm("base64Img")
+
+	response, err := ImgRemoveBackgroundByBase64(base64Img)
+	if err != nil {
+		util.ErrorBusiness(c, err.Error())
+		return
+	}
+
+	util.OKData(c, gin.H{
+		"images": response,
+	})
+}
+
+func RouterGenerateMask(c *gin.Context) {
+	type Request struct {
+		Base64Img string `json:"base64Img"`
+	}
+
+	var request Request
+	if err := c.ShouldBind(&request); err != nil {
+		util.Error(c, "获取参数 错误，请重新尝试", err.Error())
+		return
+	}
+
+	response, err := GenerateMask(request.Base64Img)
+	if err != nil {
+		util.ErrorBusiness(c, err.Error())
+		return
+	}
+
+	util.OKData(c, gin.H{
+		"image": response,
 	})
 }

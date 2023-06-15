@@ -69,6 +69,7 @@
         },
         methods: {
             handleFileChangeOrigin(event) {
+                let that = this
                 const file = event.target.files[0];
                 if (!file) {
                     return;
@@ -76,10 +77,36 @@
 
                 const reader = new FileReader();
                 reader.onload = () => {
-                    this.imgOriginBase64 = reader.result;
+                    that.imgOriginBase64 = reader.result;
                     let paramsJson = JSON.parse(this.postParams);
-                    paramsJson.init_images[0] = reader.result;
-                    this.postParams = JSON.stringify(paramsJson, false, 2)
+                    paramsJson.init_images[0] = that.imgOriginBase64;
+                    that.postParams = JSON.stringify(paramsJson, false, 2)
+
+                    let settings = {
+                        "url": "/generate-mask",
+                        "method": "POST",
+                        "timeout": 0,
+                        "headers": {
+                            "Content-Type": "application/json"
+                        },
+                        "data": JSON.stringify({
+                            "base64Img": that.imgOriginBase64
+                        })
+                    };
+
+                    $.ajax(settings).done(function (response) {
+                        if (response.msg) {
+                            alert(response.msg)
+                            console.error(response.msg)
+                        }
+
+                        if (response.data.image) {
+                            that.imgMaskBase64 = response.data.image;
+                            let paramsJson = JSON.parse(that.postParams);
+                            paramsJson.mask = that.imgMaskBase64;
+                            that.postParams = JSON.stringify(paramsJson, false, 2)
+                        }
+                    });
                 };
                 reader.readAsDataURL(file);
             },

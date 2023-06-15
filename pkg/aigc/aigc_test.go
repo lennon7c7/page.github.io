@@ -80,3 +80,24 @@ func TestImgRemoveBackgroundByUrl(t *testing.T) {
 
 	fmt.Println(outputImgBase64)
 }
+
+func TestApiSegmentAnything(t *testing.T) {
+	inputImgFile := "https://segment-anything.com/assets/gallery/GettyImages-1191014275.jpg"
+	outputImgBase64, err := img.Http2Base64(inputImgFile)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Log(aigc.ApiSegmentAnything(outputImgBase64))
+}
+
+func TestGenerateMask(t *testing.T) {
+	inputImgFile := "https://segment-anything.com/assets/gallery/GettyImages-1191014275.jpg"
+	outputImgBase64, err := img.Http2Base64(inputImgFile)
+	if err != nil {
+		return
+	}
+
+	t.Log(aigc.GenerateMask(outputImgBase64))
+}
