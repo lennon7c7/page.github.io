@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"page.github.io/pkg/aigc"
 	"page.github.io/pkg/img"
+	"page.github.io/pkg/log"
 	"strings"
 	"testing"
 	"time"
@@ -96,8 +97,26 @@ func TestGenerateMask(t *testing.T) {
 	inputImgFile := "https://segment-anything.com/assets/gallery/GettyImages-1191014275.jpg"
 	outputImgBase64, err := img.Http2Base64(inputImgFile)
 	if err != nil {
+		log.Error(err)
 		return
 	}
 
-	t.Log(aigc.GenerateMask(outputImgBase64))
+	outputImgBase64, err = aigc.GenerateMask(outputImgBase64)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	t.Log(outputImgBase64)
+}
+
+func TestImg2TagsByRecognizeAnythingModel(t *testing.T) {
+	inputImgFile := "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png"
+	outputImgBase64, err := img.Http2Base64(inputImgFile)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Log(aigc.Img2TagsByRecognizeAnythingModel(outputImgBase64))
 }

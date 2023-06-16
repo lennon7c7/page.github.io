@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"page.github.io/pkg/file"
@@ -512,6 +514,12 @@ func GenerateMask(inputImgBase64 string) (outputImgBase64 string, err error) {
 // ApiSegmentAnything 细分任何内容
 // @demo https://segment-anything.com/demo
 func ApiSegmentAnything(base64Img string) (responses []SegmentAnythingResponse, err error) {
+	substr := ","
+	if strings.Contains(base64Img, substr) {
+		// 兼容
+		base64Img = strings.Split(base64Img, substr)[1]
+	}
+
 	decoded, err := base64.StdEncoding.DecodeString(base64Img)
 	if err != nil {
 		return
@@ -609,6 +617,7 @@ func RouterGenerateMask(c *gin.Context) {
 	response, err := GenerateMask(request.Base64Img)
 	if err != nil {
 		util.ErrorBusiness(c, err.Error())
+		log.Error(err)
 		return
 	}
 
@@ -637,4 +646,134 @@ func RouterGenerateMaskByRembg(c *gin.Context) {
 	util.OKData(c, gin.H{
 		"image": response,
 	})
+}
+
+// Img2TagsByRecognizeAnythingModel Recognize Anything Model
+// @demo https://huggingface.co/spaces/xinyu1205/Recognize_Anything-Tag2Text
+func Img2TagsByRecognizeAnythingModel(base64Img string) (englishTag string, chineseTag string, err error) {
+	type Response struct {
+		Msg    string `json:"msg"`
+		Output struct {
+			Data            []string `json:"data"`
+			IsGenerating    bool     `json:"is_generating"`
+			Duration        float64  `json:"duration"`
+			AverageDuration float64  `json:"average_duration"`
+		} `json:"output"`
+		Success bool `json:"success"`
+	}
+
+	sessionHash := generateRandomString11Length()
+
+	url := "wss://xinyu1205-recognize-anything-tag2text.hf.space/queue/join"
+	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
+	if err != nil {
+		log.Fatal("dial error:", err)
+	}
+	defer func(conn *websocket.Conn) {
+		closeErr := conn.Close()
+		if closeErr != nil {
+			err = closeErr
+		}
+	}(conn)
+
+	// 接收消息
+	for {
+		messageType, messageByte, err := conn.ReadMessage()
+		if messageType == -1 {
+			fmt.Printf("messageType == -1: %v\n", messageType == -1)
+			return englishTag, chineseTag, err
+		}
+
+		if err != nil {
+			return englishTag, chineseTag, err
+		}
+
+		var response Response
+		err = json.Unmarshal(messageByte, &response)
+		if err != nil {
+			return englishTag, chineseTag, err
+		}
+
+		// 判断消息
+		switch true {
+		case "send_hash" == response.Msg:
+			// 发送数据
+			data := map[string]interface{}{
+				"fn_index":     2,
+				"session_hash": sessionHash,
+			}
+			dataBytes, err := json.Marshal(data)
+			if err != nil {
+				return englishTag, chineseTag, err
+			}
+			err = conn.WriteMessage(websocket.TextMessage, dataBytes)
+			if err != nil {
+				return englishTag, chineseTag, err
+			}
+
+			break
+
+		case "send_data" == response.Msg:
+			// 发送数据
+			data := map[string]interface{}{
+				"data":         []string{base64Img},
+				"event_data":   nil,
+				"fn_index":     2,
+				"session_hash": sessionHash,
+			}
+			dataBytes, err := json.Marshal(data)
+			if err != nil {
+				return englishTag, chineseTag, err
+			}
+			err = conn.WriteMessage(websocket.TextMessage, dataBytes)
+			if err != nil {
+				return englishTag, chineseTag, err
+			}
+
+			break
+
+		case "process_completed" == response.Msg:
+			englishTag = response.Output.Data[0]
+
+			if len(response.Output.Data) == 2 {
+				chineseTag = response.Output.Data[1]
+			}
+
+			return englishTag, chineseTag, err
+		}
+	}
+}
+
+func RouterImg2TagsByRecognizeAnythingModel(c *gin.Context) {
+	type Request struct {
+		Base64Img string `json:"base64Img"`
+	}
+
+	var request Request
+	if err := c.ShouldBind(&request); err != nil {
+		util.Error(c, "获取参数 错误，请重新尝试", err.Error())
+		return
+	}
+
+	englishTag, chineseTag, err := Img2TagsByRecognizeAnythingModel(request.Base64Img)
+	if err != nil {
+		util.ErrorBusiness(c, err.Error())
+		return
+	}
+
+	util.OKData(c, gin.H{
+		"englishTag": englishTag,
+		"chineseTag": chineseTag,
+	})
+}
+
+func generateRandomString11Length() string {
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+	rand.Seed(time.Now().UnixNano())
+
+	b := make([]byte, 11)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
 }

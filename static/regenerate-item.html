@@ -107,6 +107,8 @@
                             that.postParams = JSON.stringify(paramsJson, false, 2)
                         }
                     });
+
+                    that.Img2TagsByRecognizeAnythingModel()
                 };
                 reader.readAsDataURL(file);
             },
@@ -152,6 +154,33 @@
                         }
                     });
                 }
+            },
+            Img2TagsByRecognizeAnythingModel() {
+                let that = this
+                let settings = {
+                    "url": "/Img2TagsByRecognizeAnythingModel",
+                    "method": "POST",
+                    "timeout": 0,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "data": JSON.stringify({
+                        "base64Img": that.imgOriginBase64
+                    })
+                };
+
+                $.ajax(settings).done(function (response) {
+                    if (response.msg) {
+                        alert(response.msg)
+                        console.error(response.msg)
+                    }
+
+                    if (response.data.englishTag) {
+                        let paramsJson = JSON.parse(that.postParams);
+                        paramsJson.prompt = response.data.englishTag
+                        that.postParams = JSON.stringify(paramsJson, false, 2)
+                    }
+                });
             },
         },
     }).mount('#app')
