@@ -18,10 +18,10 @@
         <label>蒙版<input @change="handleFileChangeMask" accept="image/*" type="file"/></label>
         <img :src="imgMaskBase64" alt="" style="width: 200px" v-if="imgMaskBase64"/>
 
-        <label>参数<textarea @keydown.enter="handleAjax" cols="50" rows="10"
+        <label>参数<textarea @keydown.enter="handleAjaxImg2Img" cols="50" rows="10"
                              v-model="postParams"></textarea></label>
 
-        <button @click="handleAjax">生成</button>
+        <button @click="handleAjaxImg2Img">生成</button>
     </div>
 
     <div v-if="imgResponseBase64List.length">
@@ -127,33 +127,46 @@
                 };
                 reader.readAsDataURL(file);
             },
-            handleAjax() {
+            handleAjaxImg2Img() {
                 let that = this
-                let paramsJson = JSON.parse(that.postParams);
-                for (let i = 1; i < 100; i++) {
-                    paramsJson.seed = i
-                    that.postParams = JSON.stringify(paramsJson, false, 2)
-                    let settings = {
-                        "url": "/img2img",
-                        "method": "POST",
-                        "timeout": 0,
-                        "headers": {
-                            "Content-Type": "application/json"
-                        },
-                        "data": that.postParams,
-                    };
+                let defer = $.Deferred();
+                // 这一步必须要写，要不然下面的then无法使用
+                defer.resolve();
 
-                    $.ajax(settings).done(function (response) {
-                        if (response.msg) {
-                            alert(response.msg)
-                            console.error(response.msg)
-                        }
+                for (let i = 1; i <= 10; i++) {
+                    defer = defer.then(function () {
+                        let paramsJson = JSON.parse(that.postParams);
+                        paramsJson.seed++
+                        that.postParams = JSON.stringify(paramsJson, false, 2)
 
-                        if (response.data.images) {
-                            that.imgResponseBase64List.unshift(response.data.images[0])
-                        }
+                        return $.ajax({
+                            url: '/img2img',
+                            method: 'POST',
+                            timeout: 0,
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            data: that.postParams,
+                            beforeSend: function () {
+                                // console.log('开始数数')
+                            },
+                            success: function (response) {
+                                if (response.msg) {
+                                    alert(response.msg)
+                                    console.error(response.msg)
+                                }
+
+                                if (response.data.images) {
+                                    that.imgResponseBase64List.unshift(response.data.images[0])
+                                }
+                            }
+                        })
                     });
                 }
+
+                defer.done(function () {
+                    // console.log('---------- end ----------');
+                });
             },
             Img2TagsByRecognizeAnythingModel() {
                 let that = this
