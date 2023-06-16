@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>重新生成主体</title>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <script src="/static/js/bootstrap.bundle.js"></script>
+    <script src="/static/js/jquery-2.1.1.js"></script>
+    <script src="/static/js/vue.global.js"></script>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div>
+        <label>原图<input @change="handleFileChangeOrigin" accept="image/*" type="file"/></label>
+        <img :src="imgOriginBase64" alt="" style="width: 200px" v-if="imgOriginBase64"/>
+
+        <label>蒙版<input @change="handleFileChangeMask" accept="image/*" type="file"/></label>
+        <img :src="imgMaskBase64" alt="" style="width: 200px" v-if="imgMaskBase64"/>
+
+        <label>参数<textarea @keydown.enter="handleAjax" cols="50" rows="10"
+                             v-model="postParams"></textarea></label>
+
+        <button @click="handleAjax">生成</button>
+    </div>
+
+    <div v-if="imgResponseBase64List.length">
+        <img :src="img" alt="" style="max-height: 1000px; max-width: 1900px" v-for="(img) in imgResponseBase64List"/>
+    </div>
+</div>
+</body>
+<script>
+    const {createApp} = Vue
+
+    // noinspection JSUnusedGlobalSymbols
+    createApp({
+        data() {
+            return {
+                imgOriginBase64: null,
+                imgMaskBase64: null,
+                imgResponseBase64List: [],
+                postParams: JSON.stringify({
+                    "prompt": "((((dog))))",
+                    "negative_prompt": "",
+                    "seed": 1,
+                    "batch_size": 1,
+                    "n_iter": 1,
+                    "steps": 20,
+                    "cfg_scale": 7,
+                    "width": 512,
+                    "height": 512,
+                    "sampler_index": "Euler a",
+                    "resize_mode": 1,
+                    "denoising_strength": 0.75,
+                    "mask_blur": 10,
+                    "inpainting_fill": 1,
+                    "inpaint_full_res": true,
+                    "inpaint_full_res_padding": 10,
+                    "inpainting_mask_invert": 0,
+                    "init_images": [
+                        ""
+                    ],
+                    "mask": ""
+                }, false, 2),
+            }
+        },
+        created() {
+
+        },
+        methods: {
+            handleFileChangeOrigin(event) {
+                let that = this
+                const file = event.target.files[0];
+                if (!file) {
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                    that.imgOriginBase64 = reader.result;
+                    let paramsJson = JSON.parse(this.postParams);
+                    paramsJson.init_images[0] = that.imgOriginBase64;
+                    that.postParams = JSON.stringify(paramsJson, false, 2)
+
+                    let settings = {
+                        "url": "/generate-mask-by-rembg",
+                        "method": "POST",
+                        "timeout": 0,
+                        "headers": {
+                            "Content-Type": "application/json"
+                        },
+                        "data": JSON.stringify({
+                            "base64Img": that.imgOriginBase64
+                        })
+                    };
+
+                    $.ajax(settings).done(function (response) {
+                        if (response.msg) {
+                            alert(response.msg)
+                            console.error(response.msg)
+                        }
+
+                        if (response.data.image) {
+                            that.imgMaskBase64 = response.data.image;
+                            let paramsJson = JSON.parse(that.postParams);
+                            paramsJson.mask = that.imgMaskBase64;
+                            that.postParams = JSON.stringify(paramsJson, false, 2)
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+            },
+            handleFileChangeMask(event) {
+                const file = event.target.files[0];
+                if (!file) {
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                    this.imgMaskBase64 = reader.result;
+                    let paramsJson = JSON.parse(this.postParams);
+                    paramsJson.mask = reader.result;
+                    this.postParams = JSON.stringify(paramsJson, false, 2)
+                };
+                reader.readAsDataURL(file);
+            },
+            handleAjax() {
+                let that = this
+                let paramsJson = JSON.parse(that.postParams);
+                for (let i = 1; i < 100; i++) {
+                    paramsJson.seed = i
+                    that.postParams = JSON.stringify(paramsJson, false, 2)
+                    let settings = {
+                        "url": "/img2img",
+                        "method": "POST",
+                        "timeout": 0,
+                        "headers": {
+                            "Content-Type": "application/json"
+                        },
+                        "data": that.postParams,
+                    };
+
+                    $.ajax(settings).done(function (response) {
+                        if (response.msg) {
+                            alert(response.msg)
+                            console.error(response.msg)
+                        }
+
+                        if (response.data.images) {
+                            that.imgResponseBase64List.unshift(response.data.images[0])
+                        }
+                    });
+                }
+            },
+        },
+    }).mount('#app')
+</script>
+</html>
