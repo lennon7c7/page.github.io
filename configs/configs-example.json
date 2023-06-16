@@ -37,6 +37,7 @@
       "/Img2TagsByRecognizeAnythingModel",
       "/generate-mask",
       "/generate-mask-by-rembg",
+      "/generate-mask-by-sam",
       "/remove-img-background",
       "/static",
       "/swagger",

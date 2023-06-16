@@ -648,6 +648,54 @@ func RouterGenerateMaskByRembg(c *gin.Context) {
 	})
 }
 
+func RouterGenerateMaskBySam(c *gin.Context) {
+	type Request struct {
+		Base64Img string `json:"base64Img"`
+	}
+
+	var request Request
+	if err := c.ShouldBind(&request); err != nil {
+		util.Error(c, "获取参数 错误，请重新尝试", err.Error())
+		return
+	}
+
+	imgWidth, imgHeight, err := img.GetImageSizeFromBase64(request.Base64Img)
+	if err != nil {
+		return
+	}
+
+	imgBase64RemoveBackground, err := ImgRemoveBackgroundByBase64(request.Base64Img)
+	if err != nil {
+		return
+	}
+
+	responses, err := ApiSegmentAnything(imgBase64RemoveBackground)
+	if err != nil {
+		return
+	}
+
+	var images []string
+	for i, response := range responses {
+		if i == 0 {
+			continue
+		}
+
+		maskX, maskY, maskWidth, maskHeight := int(response.Bbox[0]), int(response.Bbox[1]), int(response.Bbox[2]), int(response.Bbox[3])
+		image, err := img.GenerateRectMask(imgWidth, imgHeight, maskX, maskY, maskWidth, maskHeight)
+		if err != nil {
+			continue
+		}
+
+		image = "data:image/png;base64," + image
+		images = append(images, image)
+	}
+
+	util.OKData(c, gin.H{
+		"responses": responses,
+		"images":    images,
+	})
+}
+
 // Img2TagsByRecognizeAnythingModel Recognize Anything Model
 // @demo https://huggingface.co/spaces/xinyu1205/Recognize_Anything-Tag2Text
 func Img2TagsByRecognizeAnythingModel(base64Img string) (englishTag string, chineseTag string, err error) {
