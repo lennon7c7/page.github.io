@@ -24,8 +24,8 @@
         <button @click="handleAjax">生成</button>
     </div>
 
-    <div>
-        <img :src="imgResponseBase64" alt="" v-if="imgResponseBase64"/>
+    <div v-if="imgResponseBase64List.length">
+        <img :src="img" alt="" style="max-height: 1000px; max-width: 1900px" v-for="(img) in imgResponseBase64List"/>
     </div>
 </div>
 </body>
@@ -38,9 +38,9 @@
             return {
                 imgOriginBase64: null,
                 imgMaskBase64: null,
-                imgResponseBase64: null,
+                imgResponseBase64List: [],
                 postParams: JSON.stringify({
-                    "prompt": "cat",
+                    "prompt": "((((cat))))",
                     "negative_prompt": "",
                     "seed": 1,
                     "batch_size": 1,
@@ -49,14 +49,14 @@
                     "cfg_scale": 7,
                     "width": 512,
                     "height": 512,
-                    "restore_faces": false,
-                    "tiling": false,
-                    "eta": 0,
-                    "script_args": [],
                     "sampler_index": "Euler a",
                     "resize_mode": 1,
                     "denoising_strength": 0.75,
-                    "mask_blur": 10,
+                    "mask_blur": 4,
+                    "inpainting_fill": 1,
+                    "inpaint_full_res": true,
+                    "inpaint_full_res_padding": 0,
+                    "inpainting_mask_invert": 0,
                     "init_images": [
                         ""
                     ],
@@ -127,26 +127,31 @@
             },
             handleAjax() {
                 let that = this
-                let settings = {
-                    "url": "/img2img",
-                    "method": "POST",
-                    "timeout": 0,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    },
-                    "data": this.postParams,
-                };
+                let paramsJson = JSON.parse(that.postParams);
+                for (let i = 1; i < 100; i++) {
+                    paramsJson.seed = i
+                    that.postParams = JSON.stringify(paramsJson, false, 2)
+                    let settings = {
+                        "url": "/img2img",
+                        "method": "POST",
+                        "timeout": 0,
+                        "headers": {
+                            "Content-Type": "application/json"
+                        },
+                        "data": that.postParams,
+                    };
 
-                $.ajax(settings).done(function (response) {
-                    if (response.msg) {
-                        alert(response.msg)
-                        console.error(response.msg)
-                    }
+                    $.ajax(settings).done(function (response) {
+                        if (response.msg) {
+                            alert(response.msg)
+                            console.error(response.msg)
+                        }
 
-                    if (response.data.images) {
-                        that.imgResponseBase64 = response.data.images[0]
-                    }
-                });
+                        if (response.data.images) {
+                            that.imgResponseBase64List.unshift(response.data.images[0])
+                        }
+                    });
+                }
             },
         },
     }).mount('#app')
