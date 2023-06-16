@@ -35,6 +35,7 @@
     "SkipPaths": [
       "/img2img",
       "/generate-mask",
+      "/generate-mask-by-rembg",
       "/remove-img-background",
       "/static",
       "/swagger",

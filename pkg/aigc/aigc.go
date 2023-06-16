@@ -332,24 +332,17 @@ func Img2img(request Img2ImgRequest) (response Txt2ImgResponse, err error) {
 }
 
 func ImgRemoveBackgroundByBase64(inputImgBase64 string) (outputImgBase64 string, err error) {
-	apiUrl := UrlStableDiffusion + "sdapi/v1/extra-single-image"
+	apiUrl := UrlStableDiffusion + "rembg"
 	method := "POST"
 
 	payload := strings.NewReader(`{
-  "resize_mode": 0,
-  "show_extras_results": true,
-  "gfpgan_visibility": 0,
-  "codeformer_visibility": 0,
-  "codeformer_weight": 0,
-  "upscaling_resize": 2,
-  "upscaling_resize_w": 512,
-  "upscaling_resize_h": 512,
-  "upscaling_crop": true,
-  "upscaler_1": "None",
-  "upscaler_2": "None",
-  "extras_upscaler_2_visibility": 0,
-  "upscale_first": false,
-  "image": "` + inputImgBase64 + `"
+  "model": "u2net",
+  "return_mask": false,
+  "alpha_matting": false,
+  "alpha_matting_foreground_threshold": 240,
+  "alpha_matting_background_threshold": 10,
+  "alpha_matting_erode_size": 10,
+  "input_image": "` + inputImgBase64 + `"
 }`)
 
 	client := &http.Client{}
@@ -399,7 +392,74 @@ func ImgRemoveBackgroundByBase64(inputImgBase64 string) (outputImgBase64 string,
 		return
 	}
 
-	outputImgBase64 = resultData.Image
+	outputImgBase64 = "data:image/png;base64," + resultData.Image
+
+	return
+}
+
+func GenerateMaskByRembg(inputImgBase64 string) (outputImgBase64 string, err error) {
+	apiUrl := UrlStableDiffusion + "rembg"
+	method := "POST"
+
+	payload := strings.NewReader(`{
+  "model": "u2net",
+  "return_mask": true,
+  "alpha_matting": false,
+  "alpha_matting_foreground_threshold": 240,
+  "alpha_matting_background_threshold": 10,
+  "alpha_matting_erode_size": 10,
+  "input_image": "` + inputImgBase64 + `"
+}`)
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, apiUrl, payload)
+	if err != nil {
+		return
+	}
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		closeErr := Body.Close()
+		if closeErr != nil {
+			err = closeErr
+		}
+	}(res.Body)
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return
+	}
+
+	type Response struct {
+		// 正常返回
+		HtmlInfo string `json:"html_info"`
+		Image    string `json:"image"`
+
+		// 错误返回
+		Error  string `json:"error"`
+		Detail string `json:"detail"`
+		Body   string `json:"body"`
+		Errors string `json:"errors"`
+	}
+
+	var resultData Response
+	err = json.Unmarshal(body, &resultData)
+	if err != nil {
+		return
+	}
+
+	if resultData.Detail != "" {
+		err = errors.New(resultData.Detail)
+		return
+	}
+
+	outputImgBase64 = "data:image/png;base64," + resultData.Image
+
 	return
 }
 
@@ -514,16 +574,24 @@ func RouterImg2Img(c *gin.Context) {
 }
 
 func RouterImgRemoveBackgroundByBase64(c *gin.Context) {
-	base64Img := c.PostForm("base64Img")
+	type Request struct {
+		Base64Img string `json:"base64Img"`
+	}
 
-	response, err := ImgRemoveBackgroundByBase64(base64Img)
+	var request Request
+	if err := c.ShouldBind(&request); err != nil {
+		util.Error(c, "获取参数 错误，请重新尝试", err.Error())
+		return
+	}
+
+	response, err := ImgRemoveBackgroundByBase64(request.Base64Img)
 	if err != nil {
 		util.ErrorBusiness(c, err.Error())
 		return
 	}
 
 	util.OKData(c, gin.H{
-		"images": response,
+		"image": response,
 	})
 }
 
@@ -539,6 +607,28 @@ func RouterGenerateMask(c *gin.Context) {
 	}
 
 	response, err := GenerateMask(request.Base64Img)
+	if err != nil {
+		util.ErrorBusiness(c, err.Error())
+		return
+	}
+
+	util.OKData(c, gin.H{
+		"image": response,
+	})
+}
+
+func RouterGenerateMaskByRembg(c *gin.Context) {
+	type Request struct {
+		Base64Img string `json:"base64Img"`
+	}
+
+	var request Request
+	if err := c.ShouldBind(&request); err != nil {
+		util.Error(c, "获取参数 错误，请重新尝试", err.Error())
+		return
+	}
+
+	response, err := GenerateMaskByRembg(request.Base64Img)
 	if err != nil {
 		util.ErrorBusiness(c, err.Error())
 		return

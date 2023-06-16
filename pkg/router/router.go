@@ -17,5 +17,6 @@ func NewRouter(router *gin.Engine, config *config.Config) {
 
 	router.POST("img2img", aigc.RouterImg2Img)
 	router.POST("generate-mask", aigc.RouterGenerateMask)
+	router.POST("generate-mask-by-rembg", aigc.RouterGenerateMaskByRembg)
 	router.POST("remove-img-background", aigc.RouterImgRemoveBackgroundByBase64)
 }
