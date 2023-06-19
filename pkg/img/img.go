@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/golang/freetype"
 	"github.com/melbahja/got"
@@ -365,6 +366,7 @@ func File2Base64(inputImgUrl string) (outputImgBase64 string, err error) {
 	if err != nil {
 		return
 	}
+
 	outputImgBase64 = base64.StdEncoding.EncodeToString(srcByte)
 
 	return
@@ -463,4 +465,54 @@ func GetImageSizeFromBase64(base64Str string) (width int, height int, err error)
 	height = img.Bounds().Dy()
 
 	return
+}
+
+// Base64ToFile 将 Base64 编码的字符串转换为图片文件
+func Base64ToFile(base64String string, filePath string) (err error) {
+	substr := ","
+	if strings.Contains(base64String, substr) {
+		// 兼容
+		base64String = strings.Split(base64String, substr)[1]
+	}
+
+	// Decode Base64 string to byte slice
+	imgData, err := base64.StdEncoding.DecodeString(base64String)
+	if err != nil {
+		return err
+	}
+
+	// Create directory if it doesn't exist
+	err = os.MkdirAll(filepath.Dir(filePath), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	// Create new fileStruct
+	fileStruct, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		closeErr := fileStruct.Close()
+		if closeErr != nil {
+			err = closeErr
+		}
+	}()
+
+	// Write byte slice to fileStruct
+	_, err = fileStruct.Write(imgData)
+	if err != nil {
+		return err
+	}
+
+	// Confirm that image fileStruct was created successfully
+	fileData, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	if len(fileData) != len(imgData) {
+		return errors.New("image fileStruct was not created correctly")
+	}
+
+	return nil
 }
