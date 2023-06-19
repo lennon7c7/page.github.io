@@ -8,12 +8,14 @@ require (
 	github.com/casbin/casbin/v2 v2.70.0
 	github.com/casbin/gorm-adapter/v3 v3.18.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/fogleman/gg v1.3.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/gorilla/websocket v1.5.0
 	github.com/rs/zerolog v1.29.1
 	github.com/satori/go.uuid v1.2.0
+	github.com/tidwall/gjson v1.14.4
 	github.com/unrolled/secure v1.13.0
 	golang.org/x/text v0.9.0
 	gorm.io/driver/mysql v1.5.1
@@ -58,6 +60,8 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230126093431-47fa9a501578 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.3.0 // indirect

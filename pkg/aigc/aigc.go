@@ -105,7 +105,7 @@ func GetOptions() (options OptionsResponse, err error) {
 	apiUrl := UrlStableDiffusion + "sdapi/v1/options"
 	method := "GET"
 
-	client := &http.Client{}
+	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
 	req, err := http.NewRequest(method, apiUrl, nil)
 
 	if err != nil {
@@ -149,7 +149,7 @@ func PostOptions(options OptionsResponse) (err error) {
 	}
 	payload := strings.NewReader(newBuffer.String())
 
-	client := &http.Client{}
+	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
 	req, err := http.NewRequest(method, apiUrl, payload)
 	if err != nil {
 		return
@@ -222,7 +222,7 @@ func Txt2img(prompt string, outputFilename string, steps int, seed int) {
 	}
 	payload := strings.NewReader(newBuffer.String())
 
-	client := &http.Client{}
+	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
 	req, err := http.NewRequest(method, apiUrl, payload)
 	if err != nil {
 		fmt.Println(err)
@@ -294,7 +294,7 @@ func Img2img(request Img2ImgRequest) (response Txt2ImgResponse, err error) {
 	}
 	payload := strings.NewReader(newBuffer.String())
 
-	client := &http.Client{}
+	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
 	req, err := http.NewRequest(method, apiUrl, payload)
 	if err != nil {
 		return
@@ -347,7 +347,7 @@ func ImgRemoveBackgroundByBase64(inputImgBase64 string) (outputImgBase64 string,
   "input_image": "` + inputImgBase64 + `"
 }`)
 
-	client := &http.Client{}
+	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
 	req, err := http.NewRequest(method, apiUrl, payload)
 	if err != nil {
 		return
@@ -413,7 +413,7 @@ func GenerateMaskByRembg(inputImgBase64 string) (outputImgBase64 string, err err
   "input_image": "` + inputImgBase64 + `"
 }`)
 
-	client := &http.Client{}
+	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
 	req, err := http.NewRequest(method, apiUrl, payload)
 	if err != nil {
 		return
