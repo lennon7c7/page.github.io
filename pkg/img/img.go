@@ -361,22 +361,11 @@ func Url2File(inputImgUrl string, outputImgFile string) (err error) {
 }
 
 func File2Base64(inputImgUrl string) (outputImgBase64 string, err error) {
-	outputImgFile := time.Now().Format("20060102150405")
-	err = Url2File(inputImgUrl, outputImgFile)
-	if err != nil {
-		return
-	}
-
-	srcByte, err := os.ReadFile(outputImgFile)
+	srcByte, err := os.ReadFile(inputImgUrl)
 	if err != nil {
 		return
 	}
 	outputImgBase64 = base64.StdEncoding.EncodeToString(srcByte)
-
-	err = os.Remove(outputImgFile)
-	if err != nil {
-		return
-	}
 
 	return
 }
