@@ -11,6 +11,9 @@ import (
 	"time"
 )
 
+// Dir 日志文件存放目录
+var Dir = "../../tmp/"
+
 // 获取第几层函数的名称
 // 1-当前层
 // 2-上一层
@@ -26,9 +29,16 @@ func getFunName() string {
 
 func Error(msg ...any) {
 	errType := getFunName()
-	filename := time.Now().Format("../../tmp/2006-01-02_") + errType + ".log"
+	filename := Dir + time.Now().Format("2006-01-02_") + errType + ".log"
+	err := os.MkdirAll(Dir, os.ModePerm)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	defer func() {
@@ -50,9 +60,16 @@ func Error(msg ...any) {
 
 func Info(msg ...any) {
 	errType := getFunName()
-	filename := time.Now().Format("../../tmp/2006-01-02_") + errType + ".log"
+	filename := Dir + time.Now().Format("2006-01-02_") + errType + ".log"
+	err := os.MkdirAll(Dir, os.ModePerm)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	defer func() {
@@ -74,9 +91,16 @@ func Info(msg ...any) {
 
 func Println(msg ...any) {
 	errType := getFunName()
-	filename := time.Now().Format("../../tmp/2006-01-02_") + errType + ".log"
+	filename := Dir + time.Now().Format("2006-01-02_") + errType + ".log"
+	err := os.MkdirAll(Dir, os.ModePerm)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	defer func() {
@@ -98,9 +122,16 @@ func Println(msg ...any) {
 
 func Debug(msg ...any) {
 	errType := getFunName()
-	filename := time.Now().Format("../../tmp/2006-01-02_") + errType + ".log"
+	filename := Dir + time.Now().Format("2006-01-02_") + errType + ".log"
+	err := os.MkdirAll(Dir, os.ModePerm)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	defer func() {
@@ -122,9 +153,16 @@ func Debug(msg ...any) {
 
 func Fatalln(msg ...any) {
 	errType := getFunName()
-	filename := time.Now().Format("../../tmp/2006-01-02_") + errType + ".log"
+	filename := Dir + time.Now().Format("2006-01-02_") + errType + ".log"
+	err := os.MkdirAll(Dir, os.ModePerm)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	defer func() {
@@ -146,9 +184,16 @@ func Fatalln(msg ...any) {
 
 func Fatal(msg ...any) {
 	errType := getFunName()
-	filename := time.Now().Format("../../tmp/2006-01-02_") + errType + ".log"
+	filename := Dir + time.Now().Format("2006-01-02_") + errType + ".log"
+	err := os.MkdirAll(Dir, os.ModePerm)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	defer func() {
@@ -170,9 +215,16 @@ func Fatal(msg ...any) {
 
 func Fatalf(msg ...any) {
 	errType := getFunName()
-	filename := time.Now().Format("../../tmp/2006-01-02_") + errType + ".log"
+	filename := Dir + time.Now().Format("2006-01-02_") + errType + ".log"
+	err := os.MkdirAll(Dir, os.ModePerm)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	defer func() {
