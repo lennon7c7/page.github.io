@@ -16,7 +16,7 @@ func NewRouter(router *gin.Engine, config *config.Config) {
 	router.Static(config.File.WebRelativePath, config.File.WebUploadRoot) //文件访问
 
 	router.POST("img2img", aigc.RouterImg2Img)
-	router.POST("Img2TagsByRecognizeAnythingModel", aigc.RouterImg2TagsByRecognizeAnythingModel)
+	router.POST("HuggingFaceImg2TagsByRecognizeAnythingModel", aigc.RouterHuggingFaceImg2TagsByRecognizeAnythingModel)
 	router.POST("generate-mask", aigc.RouterGenerateMask)
 	router.POST("generate-mask-by-rembg", aigc.RouterGenerateMaskByRembg)
 	router.POST("generate-mask-by-sam", aigc.RouterGenerateMaskBySam)

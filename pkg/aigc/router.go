@@ -140,7 +140,7 @@ func RouterGenerateMaskBySam(c *gin.Context) {
 	})
 }
 
-func RouterImg2TagsByRecognizeAnythingModel(c *gin.Context) {
+func RouterHuggingFaceImg2TagsByRecognizeAnythingModel(c *gin.Context) {
 	type Request struct {
 		Base64Img string `json:"base64Img"`
 	}
@@ -151,7 +151,7 @@ func RouterImg2TagsByRecognizeAnythingModel(c *gin.Context) {
 		return
 	}
 
-	englishTag, chineseTag, err := Img2TagsByRecognizeAnythingModel(request.Base64Img)
+	englishTag, chineseTag, err := HuggingFaceImg2TagsByRecognizeAnythingModel(request.Base64Img)
 	if err != nil {
 		util.ErrorBusiness(c, err.Error())
 		return

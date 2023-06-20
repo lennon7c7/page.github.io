@@ -149,7 +149,7 @@ func TestGenerateMask(t *testing.T) {
 	}
 }
 
-func TestImg2TagsByRecognizeAnythingModel(t *testing.T) {
+func TestHuggingFaceImg2TagsByRecognizeAnythingModel(t *testing.T) {
 	inputImgFile := "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png"
 	outputImgBase64, err := img.Http2Base64(inputImgFile)
 	if err != nil {
@@ -157,5 +157,5 @@ func TestImg2TagsByRecognizeAnythingModel(t *testing.T) {
 		return
 	}
 
-	t.Log(aigc.Img2TagsByRecognizeAnythingModel(outputImgBase64))
+	t.Log(aigc.HuggingFaceImg2TagsByRecognizeAnythingModel(outputImgBase64))
 }

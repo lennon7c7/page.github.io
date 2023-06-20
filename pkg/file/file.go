@@ -115,7 +115,7 @@ func GetRedirectUrl(oldUrl string) (newUrl string) {
 }
 
 func GetRandomAudio() (randomAudio string) {
-	dirAudio := "../../audio"
+	dirAudio := "../../../audio"
 	dirEntries, _ := os.ReadDir(dirAudio)
 	ExtList := []string{".mp3"}
 	var files []string

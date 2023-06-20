@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"page.github.io/pkg/log"
 )
 
-// Img2TagsByRecognizeAnythingModel Recognize Anything Model
+// HuggingFaceImg2TagsByRecognizeAnythingModel Recognize Anything Model
 // @demo https://huggingface.co/spaces/xinyu1205/Recognize_Anything-Tag2Text
-func Img2TagsByRecognizeAnythingModel(base64Img string) (englishTag string, chineseTag string, err error) {
+func HuggingFaceImg2TagsByRecognizeAnythingModel(base64Img string) (englishTag string, chineseTag string, err error) {
 	type Response struct {
 		Msg    string `json:"msg"`
 		Output struct {
@@ -26,14 +25,14 @@ func Img2TagsByRecognizeAnythingModel(base64Img string) (englishTag string, chin
 	url := "wss://xinyu1205-recognize-anything-tag2text.hf.space/queue/join"
 	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
-		log.Fatal("dial error:", err)
+		return
 	}
-	defer func(conn *websocket.Conn) {
+	defer func() {
 		closeErr := conn.Close()
 		if closeErr != nil {
 			err = closeErr
 		}
-	}(conn)
+	}()
 
 	// 接收消息
 	for {

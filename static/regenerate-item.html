@@ -108,7 +108,7 @@
                         }
                     });
 
-                    that.Img2TagsByRecognizeAnythingModel()
+                    that.HuggingFaceImg2TagsByRecognizeAnythingModel()
                 };
                 reader.readAsDataURL(file);
             },
@@ -168,10 +168,10 @@
                     // console.log('---------- end ----------');
                 });
             },
-            Img2TagsByRecognizeAnythingModel() {
+            HuggingFaceImg2TagsByRecognizeAnythingModel() {
                 let that = this
                 let settings = {
-                    "url": "/Img2TagsByRecognizeAnythingModel",
+                    "url": "/HuggingFaceImg2TagsByRecognizeAnythingModel",
                     "method": "POST",
                     "timeout": 0,
                     "headers": {

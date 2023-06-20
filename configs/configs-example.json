@@ -34,7 +34,7 @@
   "JWT": {
     "SkipPaths": [
       "/img2img",
-      "/Img2TagsByRecognizeAnythingModel",
+      "/HuggingFaceImg2TagsByRecognizeAnythingModel",
       "/generate-mask",
       "/generate-mask-by-rembg",
       "/generate-mask-by-sam",
