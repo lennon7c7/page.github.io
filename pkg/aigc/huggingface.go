@@ -1,10 +1,28 @@
 package aigc
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"io"
+	"net/http"
+	"strings"
 )
+
+var HuggingFaceToken = ""
+
+type HuggingFaceHuggingFaceObjectDetectionResponse struct {
+	Score float64 `json:"score"`
+	Label string  `json:"label"`
+	Box   struct {
+		Xmin int `json:"xmin"`
+		Ymin int `json:"ymin"`
+		Xmax int `json:"xmax"`
+		Ymax int `json:"ymax"`
+	} `json:"box"`
+}
 
 // HuggingFaceImg2TagsByRecognizeAnythingModel Recognize Anything Model
 // @demo https://huggingface.co/spaces/xinyu1205/Recognize_Anything-Tag2Text
@@ -100,4 +118,66 @@ func HuggingFaceImg2TagsByRecognizeAnythingModel(base64Img string) (englishTag s
 			return englishTag, chineseTag, err
 		}
 	}
+}
+
+// HuggingFaceObjectDetection Object Detection
+// @demo https://huggingface.co/facebook/detr-resnet-50
+func HuggingFaceObjectDetection(base64Img string) (responses []HuggingFaceHuggingFaceObjectDetectionResponse, err error) {
+	substr := ","
+	if strings.Contains(base64Img, substr) {
+		// 兼容
+		base64Img = strings.Split(base64Img, substr)[1]
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(base64Img)
+	if err != nil {
+		return
+	}
+
+	// 将字节数组转换为缓冲区
+	buffer := bytes.NewBuffer(decoded)
+
+	// 创建一个 POST 请求
+	apiUrl := "https://api-inference.huggingface.co/models/facebook/detr-resnet-50"
+	req, err := http.NewRequest("POST", apiUrl, buffer)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "image/png")
+
+	if HuggingFaceToken != "" {
+		req.Header.Add("Authorization", "Bearer "+HuggingFaceToken)
+	}
+
+	// 使用代理发送请求
+	//client := http.Client{
+	//	Transport: &http.Transport{
+	//		Proxy: http.ProxyURL(proxy.GetUrl()),
+	//	},
+	//}
+
+	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer func() {
+		closeErr := resp.Body.Close()
+		if closeErr != nil {
+			err = closeErr
+		}
+	}()
+
+	// 读取响应数据
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(body, &responses)
+	if err != nil {
+		return
+	}
+
+	return
 }

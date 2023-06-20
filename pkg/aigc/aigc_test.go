@@ -159,3 +159,21 @@ func TestHuggingFaceImg2TagsByRecognizeAnythingModel(t *testing.T) {
 
 	t.Log(aigc.HuggingFaceImg2TagsByRecognizeAnythingModel(outputImgBase64))
 }
+
+func TestHuggingFaceObjectDetection(t *testing.T) {
+	//inputImgFile := "https://s3.amazonaws.com/a.storyblok.com/f/191576/1024x1024/f187412139/sample-03.png"
+	//outputImgBase64, err := img.Http2Base64(inputImgFile)
+	//if err != nil {
+	//	t.Error(err)
+	//	return
+	//}
+
+	inputImgFile := "../../images/nature-1.jpg"
+	outputImgBase64, err := img.File2Base64(inputImgFile)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Log(aigc.HuggingFaceObjectDetection(outputImgBase64))
+}
