@@ -466,7 +466,7 @@ func GenerateMaskByRembg(inputImgBase64 string) (outputImgBase64 string, err err
 }
 
 func ImgRemoveBackgroundByUrl(inputImgUrl string) (outputImgBase64 string, err error) {
-	inputImgBase64, err := img.File2Base64(inputImgUrl)
+	inputImgBase64, err := img.Http2Base64(inputImgUrl)
 
 	outputImgBase64, err = ImgRemoveBackgroundByBase64(inputImgBase64)
 

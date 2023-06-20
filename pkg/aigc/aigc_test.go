@@ -75,11 +75,15 @@ func TestImgRemoveBackgroundByUrl(t *testing.T) {
 	inputImgUrl := "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png"
 	outputImgBase64, err := aigc.ImgRemoveBackgroundByUrl(inputImgUrl)
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 		return
 	}
 
-	fmt.Println(outputImgBase64)
+	err = img.Base64ToFile(outputImgBase64, "../../images/output.png")
+	if err != nil {
+		log.Error(err)
+		return
+	}
 }
 
 func TestApiSegmentAnything(t *testing.T) {
