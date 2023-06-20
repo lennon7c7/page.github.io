@@ -111,7 +111,11 @@ func TestGenerateMask(t *testing.T) {
 		return
 	}
 
-	t.Log(outputImgBase64)
+	err = img.Base64ToFile(outputImgBase64, "../../images/output.png")
+	if err != nil {
+		log.Error(err)
+		return
+	}
 }
 
 func TestImg2TagsByRecognizeAnythingModel(t *testing.T) {
