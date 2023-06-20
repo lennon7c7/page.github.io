@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"page.github.io/pkg/file"
 	"page.github.io/pkg/img"
+	"page.github.io/pkg/log"
 	"testing"
 	"time"
 )
@@ -157,6 +158,34 @@ func TestGetImageSizeFromBase64(t *testing.T) {
 
 	if height != 1661 {
 		t.Error("height != 1661")
+		return
+	}
+}
+
+func TestDrawBackground(t *testing.T) {
+	inputImgFile := "../../images/nature-1.jpg"
+	outputImgBase64, err := img.File2Base64(inputImgFile)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	originImgInterface, err := img.Base64ToImgInterface(outputImgBase64)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	inputImgFile = "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png"
+	outputImgBase64, err = img.Http2Base64(inputImgFile)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	err = img.DrawTransparentBackground(outputImgBase64, originImgInterface.Bounds().Dx(), originImgInterface.Bounds().Dy(), 0, 0, "../../images/output.png")
+	if err != nil {
+		log.Error(err)
 		return
 	}
 }

@@ -272,6 +272,41 @@ func CutBorder(inputFile string, outputFile string, border int) (err error) {
 	return
 }
 
+func CutByBbox(originImgInterface image.Image, x int, y int, width int, height int) (cutImgInterface image.Image, base64Img string, err error) {
+	// 裁剪出一个长方形
+	rect := image.Rect(x, y, x+width, y+height)
+	cutImgInterface = originImgInterface.(interface {
+		SubImage(r image.Rectangle) image.Image
+	}).SubImage(rect)
+
+	//// 将裁剪后的图片保存为 JPG 文件
+	//fileStruct, err := os.Create(outputFilename)
+	//if err != nil {
+	//	return
+	//}
+	//defer func() {
+	//	closeErr := fileStruct.Close()
+	//	if closeErr != nil {
+	//		err = closeErr
+	//	}
+	//}()
+	//err = jpeg.Encode(fileStruct, cutImgInterface, &jpeg.Options{Quality: 100})
+	//if err != nil {
+	//	return
+	//}
+
+	// Convert image to Base64 string
+	buffer := new(bytes.Buffer)
+	err = png.Encode(buffer, cutImgInterface)
+	if err != nil {
+		return
+	}
+	imgBytes := buffer.Bytes()
+	base64Img = base64.StdEncoding.EncodeToString(imgBytes)
+
+	return
+}
+
 func IsWatermark(inputFile string) (exists bool) {
 	watermarks := []string{"www.", ".net"}
 	exists = false
@@ -441,15 +476,15 @@ func GenerateRectMask(imgWidth int, imgHeight int, maskX int, maskY int, maskWid
 }
 
 // GetImageSizeFromBase64 获取 Base64 编码图片的宽度和高度
-func GetImageSizeFromBase64(base64Str string) (width int, height int, err error) {
+func GetImageSizeFromBase64(base64String string) (width int, height int, err error) {
 	substr := ","
-	if strings.Contains(base64Str, substr) {
+	if strings.Contains(base64String, substr) {
 		// 兼容
-		base64Str = strings.Split(base64Str, substr)[1]
+		base64String = strings.Split(base64String, substr)[1]
 	}
 
 	// 将 Base64 编码转换为字节数组
-	data, err := base64.StdEncoding.DecodeString(base64Str)
+	data, err := base64.StdEncoding.DecodeString(base64String)
 	if err != nil {
 		return
 	}
@@ -515,4 +550,79 @@ func Base64ToFile(base64String string, filePath string) (err error) {
 	}
 
 	return nil
+}
+
+// Base64ToImgInterface 将 Base64 编码的字符串转换为图片对象
+func Base64ToImgInterface(base64String string) (imgInterface image.Image, err error) {
+	substr := ","
+	if strings.Contains(base64String, substr) {
+		// 兼容
+		base64String = strings.Split(base64String, substr)[1]
+	}
+
+	// Decode Base64 string
+	imgBytes, err := base64.StdEncoding.DecodeString(base64String)
+	if err != nil {
+		return
+	}
+
+	// Check the first few bytes of the decoded data to determine the image format
+	if len(imgBytes) < 4 {
+		return nil, io.EOF
+	}
+
+	// Decode image from bytes
+	if imgBytes[0] == 0xff && imgBytes[1] == 0xd8 && imgBytes[2] == 0xff {
+		imgInterface, err = jpeg.Decode(strings.NewReader(string(imgBytes)))
+		if err != nil {
+			return
+		}
+	} else if imgBytes[0] == 0x89 && imgBytes[1] == 0x50 && imgBytes[2] == 0x4e && imgBytes[3] == 0x47 {
+		imgInterface, err = png.Decode(strings.NewReader(string(imgBytes)))
+		if err != nil {
+			return
+		}
+	} else {
+		return nil, errors.New("unknown image type")
+	}
+
+	return
+}
+
+// DrawTransparentBackground 将裁剪后的图片放入一个新的图片中
+func DrawTransparentBackground(cutImgBase64 string, backgroundWidth int, backgroundHeight int, maskX int, maskY int, outputFilename string) (err error) {
+	cutImgInterface, err := Base64ToImgInterface(cutImgBase64)
+	if err != nil {
+		return
+	}
+
+	// 创建一个 w * h 的 RGBA 图片
+	rect := image.Rect(0, 0, backgroundWidth, backgroundHeight)
+	newImg := image.NewRGBA(rect)
+
+	// 将新图片中所有像素设置为黑色
+	draw.Draw(newImg, newImg.Bounds(), &image.Uniform{C: color.Black}, image.Point{}, draw.Src)
+
+	// 在新图片中绘制原图
+	draw.Draw(newImg, cutImgInterface.Bounds().Add(image.Pt(maskX, maskY)), cutImgInterface, cutImgInterface.Bounds().Min, draw.Over)
+
+	// 将图片保存为 JPG 文件
+	out, err := os.Create(outputFilename)
+	if err != nil {
+		return
+	}
+	defer func() {
+		closeErr := out.Close()
+		if closeErr != nil {
+			err = closeErr
+			return
+		}
+	}()
+
+	err = png.Encode(out, newImg)
+	if err != nil {
+		return
+	}
+
+	return
 }

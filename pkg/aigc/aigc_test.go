@@ -97,6 +97,37 @@ func TestApiSegmentAnything(t *testing.T) {
 	t.Log(aigc.ApiSegmentAnything(outputImgBase64))
 }
 
+func TestGenerateMaskBySegmentAnything(t *testing.T) {
+	inputImgFile := "https://segment-anything.com/assets/gallery/GettyImages-1191014275.jpg"
+	outputImgBase64, err := img.Http2Base64(inputImgFile)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	imgList, maskList, err := aigc.GenerateMaskBySegmentAnything(outputImgBase64)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	for i, base64 := range imgList {
+		err = img.Base64ToFile(base64, "../../images/remove-background-"+fmt.Sprintf("%d", i)+".png")
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+	}
+
+	for i, base64 := range maskList {
+		err = img.Base64ToFile(base64, "../../images/mask-"+fmt.Sprintf("%d", i)+".png")
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+	}
+}
+
 func TestGenerateMask(t *testing.T) {
 	inputImgFile := "https://segment-anything.com/assets/gallery/GettyImages-1191014275.jpg"
 	outputImgBase64, err := img.Http2Base64(inputImgFile)
