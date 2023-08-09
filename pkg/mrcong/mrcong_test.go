@@ -2,6 +2,7 @@ package mrcong_test
 
 import (
 	"fmt"
+	"page.github.io/pkg/file"
 	"page.github.io/pkg/mrcong"
 	"testing"
 	"time"
@@ -25,4 +26,29 @@ func TestDownloadToJson(t *testing.T) {
 func TestDownloadMediafireLink(t *testing.T) {
 	var jsonFiles []string
 	mrcong.DownloadMediafireLink(jsonFiles)
+}
+
+// go test -timeout 0 -v pkg/mrcong/mrcong_test.go -run TestDownloadByTag
+func TestDownloadByTag(t *testing.T) {
+	// step1
+	webUrl := mrcong.Domain + "/tag/%e7%99%bd%e9%93%b681/page/4/"
+	//webUrl = mrcong.Domain + "/tag/merry/"
+	jsonFiles := mrcong.ListPage(webUrl)
+	if len(jsonFiles) == 0 {
+		return
+	}
+
+	// step2
+	zipFiles := mrcong.DownloadMediafireLink(jsonFiles)
+	if len(zipFiles) == 0 {
+		return
+	}
+
+	// step3
+	pathName := "../../zip/mrcong"
+	files := file.GetFiles(pathName)
+	outpuf := "../../images/test"
+	for _, f := range files {
+		mrcong.Unrar(f, outpuf)
+	}
 }

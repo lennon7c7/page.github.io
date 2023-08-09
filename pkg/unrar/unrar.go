@@ -15,7 +15,7 @@ func Command(input string, output string) {
 
 	err := os.MkdirAll(output, os.ModePerm)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err, input, output)
 		return
 	}
 
@@ -31,11 +31,11 @@ func Command(input string, output string) {
 		log.Fatalln("I don't support other os")
 	}
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err, input, output)
 		return
 	}
 
 	if string(msg) != "" {
-		fmt.Println(string(msg))
+		fmt.Println(string(msg), input, output)
 	}
 }

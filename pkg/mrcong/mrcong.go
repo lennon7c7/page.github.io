@@ -7,15 +7,18 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/melbahja/got"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
 	"page.github.io/pkg/file"
 	"page.github.io/pkg/log"
 	"page.github.io/pkg/proxy"
+	"page.github.io/pkg/unrar"
 	"path"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -32,7 +35,7 @@ type jsonData struct {
 	ImgLinkList   []string
 }
 
-func DownloadMediafireLink(jsonFiles []string) {
+func DownloadMediafireLink(jsonFiles []string) (zipFiles []string) {
 	if len(jsonFiles) == 0 {
 		extName := ".json"
 		err := filepath.Walk(BaseDownloadJsonPath, func(pathFile string, info os.FileInfo, err error) error {
@@ -143,15 +146,20 @@ func DownloadMediafireLink(jsonFiles []string) {
 			}
 
 			fmt.Println("  ", outputFile)
+			if outputFile != "" {
+				zipFiles = append(zipFiles, outputFile)
+			}
 		}
 	}
+
+	return
 }
 
 func DownloadToJson(webUrl string) {
-	listPage(webUrl)
+	ListPage(webUrl)
 }
 
-func listPage(url string) {
+func ListPage(url string) (files []string) {
 	IsExit = false
 	fmt.Println(url)
 
@@ -164,10 +172,14 @@ func listPage(url string) {
 	doc.Find(".post-listing .post-box-title a").Each(func(i int, s *goquery.Selection) {
 		detailUrl, _ := s.Attr("href")
 		if detailUrl != "" {
-			err = detailPage(detailUrl)
+			tempFile, err := detailPage(detailUrl)
 			if err != nil {
 				log.Error(err)
 				return
+			}
+
+			if tempFile != "" {
+				files = append(files, tempFile)
 			}
 		}
 	})
@@ -178,11 +190,14 @@ func listPage(url string) {
 
 	nextUrl, _ := doc.Find("head link[rel=next]").Attr("href")
 	if nextUrl != "" {
-		listPage(nextUrl)
+		temp := ListPage(nextUrl)
+		files = append(files, temp...)
 	}
+
+	return
 }
 
-func detailPage(url string) (err error) {
+func detailPage(url string) (jsonFile string, err error) {
 	if url == "" {
 		err = errors.New(`url == ""`)
 		return
@@ -196,8 +211,11 @@ func detailPage(url string) (err error) {
 
 	title := doc.Find("#crumbs .current").Text()
 	if title == "" {
-		err = errors.New(`title == ""`)
-		return
+		//err = errors.New(`title == ""`)
+		//return
+
+		// 如果没有标题，就用随机生成标题
+		title = strconv.Itoa(rand.Intn(100000000))
 	}
 
 	downloadPath := doc.Find(".updated").Text()
@@ -211,15 +229,17 @@ func detailPage(url string) (err error) {
 		}
 	}
 
-	jsonFile := downloadPath + filepath.Base(url) + ".json"
+	jsonFile = downloadPath + filepath.Base(url) + ".json"
 	jsonFile, err = filepath.Abs(jsonFile)
 	if err != nil {
+		jsonFile = ""
 		return
 	}
 
 	if file.Exists(jsonFile) {
 		fmt.Println("---------- no shit ---------- ")
 		IsExit = true
+		jsonFile = ""
 		return
 	}
 
@@ -230,11 +250,13 @@ func detailPage(url string) (err error) {
 	})
 
 	var imgLinkList []string
-	imgLinkList = getDetailPageImgList(url)
-	if len(imgLinkList) == 0 {
-		err = errors.New(`len(imgLinkList) == 0`)
-		return
-	}
+	// 只下载zip时，可以不要图片
+	//imgLinkList = getDetailPageImgList(url)
+	//if len(imgLinkList) == 0 {
+	//	err = errors.New(`len(imgLinkList) == 0`)
+	//	jsonFile = ""
+	//	return
+	//}
 
 	dataMap, err := json.MarshalIndent(jsonData{
 		MediafireLink: mediafireLinkList,
@@ -244,11 +266,13 @@ func detailPage(url string) (err error) {
 		ImgLinkList:   imgLinkList,
 	}, "", "  ")
 	if err != nil {
+		jsonFile = ""
 		return
 	}
 
 	err = os.WriteFile(jsonFile, dataMap, os.ModePerm)
 	if err != nil {
+		jsonFile = ""
 		return
 	}
 
@@ -302,4 +326,8 @@ func getDetailPageImgList(detailPage string) (imgList []string) {
 	}
 
 	return
+}
+
+func Unrar(input string, output string) {
+	unrar.Command(input, output)
 }
