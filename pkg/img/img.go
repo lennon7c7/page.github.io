@@ -17,10 +17,13 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"page.github.io/pkg/array"
 	"page.github.io/pkg/file"
+	"page.github.io/pkg/log"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -622,6 +625,36 @@ func DrawTransparentBackground(cutImgBase64 string, backgroundWidth int, backgro
 	err = png.Encode(out, newImg)
 	if err != nil {
 		return
+	}
+
+	return
+}
+
+// ReplaceFace 替换人脸
+func ReplaceFace(sourceImgUrl string, targetImgUrl string, outputImgUrl string) (err error) {
+	outputImgUrl, _ = filepath.Abs(outputImgUrl)
+	err = os.MkdirAll(filepath.Dir(outputImgUrl), os.ModePerm)
+	if err != nil {
+		fmt.Println(err, outputImgUrl)
+		return
+	}
+
+	var msg []byte
+	switch runtime.GOOS {
+	case "windows":
+		command := `python D:\Project\demo\roop\run.py -o %s -s %s -t %s`
+		command = fmt.Sprintf(command, outputImgUrl, sourceImgUrl, targetImgUrl)
+		msg, err = exec.Command("powershell", command).Output()
+	default:
+		log.Fatalln("I don't support other os")
+	}
+	if err != nil {
+		fmt.Println(err, outputImgUrl)
+		return
+	}
+
+	if string(msg) != "" {
+		fmt.Println(string(msg), outputImgUrl)
 	}
 
 	return

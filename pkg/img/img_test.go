@@ -5,6 +5,7 @@ import (
 	"page.github.io/pkg/file"
 	"page.github.io/pkg/img"
 	"page.github.io/pkg/log"
+	"strings"
 	"testing"
 	"time"
 )
@@ -31,6 +32,17 @@ func TestMaxImageWidthHeight(t *testing.T) {
 
 	for _, tempFile := range files {
 		img.MaxImageWidthHeight(x, y, tempFile)
+	}
+}
+
+func TestReplaceFace(t *testing.T) {
+	pathName := "../../images/test"
+	files := img.GetFiles(pathName)
+
+	faceImgUrl := "../../images/face-panpan.jpg"
+	for _, targetImgUrl := range files {
+		outputImgUrl := strings.ReplaceAll(targetImgUrl, "test", "replace-face")
+		_ = img.ReplaceFace(faceImgUrl, targetImgUrl, outputImgUrl)
 	}
 }
 
