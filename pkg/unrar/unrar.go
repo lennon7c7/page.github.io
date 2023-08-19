@@ -22,7 +22,9 @@ func Command(input string, output string) {
 	var msg []byte
 	switch runtime.GOOS {
 	case "windows":
-		command := `D:\"Program Files"\WinRAR\UnRAR.exe e ` + input + ` -p"mrcong.com" -inul -y ` + output
+		// e 提取文件不带压缩路径
+		// x 解压文件带完整路径
+		command := `D:\"Program Files"\WinRAR\UnRAR.exe x ` + input + ` -p"mrcong.com" -inul -y ` + output
 		msg, err = exec.Command("powershell", command).Output()
 	case "linux":
 		command := "unrar e -pmrcong.com -inul -y " + input + " " + output

@@ -330,4 +330,15 @@ func getDetailPageImgList(detailPage string) (imgList []string) {
 
 func Unrar(input string, output string) {
 	unrar.Command(input, output)
+
+	files := file.GetFiles(output)
+	for _, tempFile := range files {
+		newpath := strings.Replace(tempFile, "-MrCong.com", "", 1)
+		newpath = strings.ToLower(newpath)
+		err := os.Rename(tempFile, newpath)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+	}
 }
