@@ -34,3 +34,9 @@ func TestAddAudio2Video(t *testing.T) {
 	output = "../../images/test-music-11-The Eagles-Hotel California.mp4"
 	ffmpeg.AddAudio2Video(inputVideo, inputAudio, output)
 }
+
+func TestConcatVideo2Video(t *testing.T) {
+	inputVideo := "../../images/test/coser@白银81 纯白圣女"
+	outputVideo := ""
+	t.Log(ffmpeg.ConcatVideo2Video(inputVideo, outputVideo))
+}

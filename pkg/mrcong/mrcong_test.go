@@ -2,6 +2,7 @@ package mrcong_test
 
 import (
 	"fmt"
+	"page.github.io/pkg/ffmpeg"
 	"page.github.io/pkg/file"
 	"page.github.io/pkg/mrcong"
 	"testing"
@@ -50,5 +51,12 @@ func TestDownloadByTag(t *testing.T) {
 	outpuf := "../../images/test"
 	for _, f := range files {
 		mrcong.Unrar(f, outpuf)
+	}
+
+	// step4
+	files = file.GetDirs(outpuf)
+	for _, f := range files {
+		outputVideo := ""
+		t.Log(ffmpeg.ConcatVideo2Video(f, outputVideo))
 	}
 }

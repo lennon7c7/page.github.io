@@ -44,6 +44,20 @@ func GetFiles(pathName string) (files []string) {
 	return
 }
 
+// GetDirs 获取当前目录下的文件或目录名(不包含多级子目录)
+func GetDirs(pathName string) (dirs []string) {
+	// 获取当前目录下的文件或目录名(包含路径)
+	filepathNames, _ := filepath.Glob(filepath.Join(pathName, "*"))
+	for i := range filepathNames {
+		dirs = append(dirs, filepathNames[i])
+		if filepathNames[i] == "[]" {
+			continue
+		}
+	}
+
+	return
+}
+
 func SerialRename(files []string) {
 	timeNow := time.Now().Format("20060102150405")
 
