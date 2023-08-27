@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -80,7 +81,7 @@ func ConcatVideo2Video(inputVideoDir string, outputVideoFile string) (err error)
 	}
 
 	if file.Exists(outputVideoFile) {
-		err = errors.New("输出文件已存在")
+		err = errors.New("输出文件已存在" + inputVideoDir)
 		return
 	}
 
@@ -108,16 +109,15 @@ func ConcatVideo2Video(inputVideoDir string, outputVideoFile string) (err error)
 	}
 
 	if len(videoFiles) <= 1 {
-		err = errors.New("视频文件数量不足")
+		err = errors.New("视频文件数量不足" + inputVideoDir)
 		return
 	}
 
 	minWidth, minHeight := 1080, 1920
-	commandArg := "ffmpeg "
+	commandArg := `cd ` + filepath.Dir(outputVideoFile) + `; ffmpeg `
 	for _, videoFile := range videoFiles {
 		command := "ffmpeg -i " + videoFile
-		commandArg += " -i " + videoFile
-
+		commandArg += ` -i ` + filepath.Base(videoFile)
 		var msg []byte
 		switch runtime.GOOS {
 		case "windows":
@@ -155,6 +155,7 @@ func ConcatVideo2Video(inputVideoDir string, outputVideoFile string) (err error)
 		commandArg += "[v" + strconv.Itoa(i) + "][" + strconv.Itoa(i) + ":a]"
 	}
 	commandArg += "concat=n=" + strconv.Itoa(len(videoFiles)) + ":v=1:a=1[outv][outa]\" -map \"[outv]\" -map \"[outa]\" " + outputVideoFile
+	fmt.Println(commandArg)
 
 	var msg []byte
 	switch runtime.GOOS {
@@ -166,7 +167,7 @@ func ConcatVideo2Video(inputVideoDir string, outputVideoFile string) (err error)
 		log.Fatalln("I don't support other os")
 	}
 
-	fmt.Println(string(msg))
-
+	fmt.Printf("%v\n", outputVideoFile)
+	msg = bytes.ReplaceAll(msg, []byte("\n"), []byte(""))
 	return
 }
