@@ -23,6 +23,11 @@ func Img2Video(input string, output string) {
 		return
 	}
 
+	if file.Exists(output) {
+		fmt.Println(output + " file exists, skip")
+		return
+	}
+
 	command := "ffmpeg -framerate 1/2 -start_number 1 -i \"" + input + "\" -r 30 -y \"" + output + "\""
 	var msg []byte
 	switch runtime.GOOS {

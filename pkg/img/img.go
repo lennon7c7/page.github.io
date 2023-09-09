@@ -46,6 +46,21 @@ type ApiWatermarkData struct {
 // MaxImageWidthHeight 扩张图片宽高
 // 扩张之处以黑色背景填充
 func MaxImageWidthHeight(canvasWidth int, canvasHeight int, imgFile string) {
+	// 图片水印
+	img, _ := os.Open(imgFile)
+	defer func(img *os.File) {
+		err := img.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(img)
+	img1, _ := jpeg.Decode(img) // 读取一个JPEG图像并将其作为image.Image返回
+
+	if img1.Bounds().Dx() == canvasWidth && img1.Bounds().Dy() == canvasHeight {
+		// 图片宽高相等，不需要扩张
+		return
+	}
+
 	// 返回一个矩形
 	rectangle := image.Rect(0, 0, canvasWidth, canvasHeight)
 	rgba := image.NewRGBA(rectangle)
@@ -56,16 +71,6 @@ func MaxImageWidthHeight(canvasWidth int, canvasHeight int, imgFile string) {
 	context.SetClip(rgba.Bounds())                                             //设置用于绘制的剪辑矩形。
 	context.SetDst(rgba)                                                       //设置绘制操作的目标图像。
 	context.SetSrc(image.NewUniform(color.RGBA{R: 255, G: 255, B: 255, A: 1})) //设置用于绘制操作的源图像
-
-	// 图片水印
-	img, _ := os.Open(imgFile)
-	defer func(img *os.File) {
-		err := img.Close()
-		if err != nil {
-			fmt.Println(err)
-		}
-	}(img)
-	img1, _ := jpeg.Decode(img) // 读取一个JPEG图像并将其作为image.Image返回
 
 	offsetX := canvasWidth/2 - img1.Bounds().Dx()/2
 	offsetY := canvasHeight/2 - img1.Bounds().Dy()/2
@@ -99,8 +104,16 @@ func MaxImageWidthHeight(canvasWidth int, canvasHeight int, imgFile string) {
 
 func GetMaxWidthHeight(files []string) (width int, height int) {
 	for _, tempFile := range files {
-		img, _ := os.Open(tempFile)
-		img1, _ := jpeg.Decode(img)
+		img, err := os.Open(tempFile)
+		if err != nil {
+			fmt.Println(tempFile, err)
+			return
+		}
+		img1, err := jpeg.Decode(img)
+		if err != nil {
+			fmt.Println(tempFile, err)
+			return
+		}
 
 		if img1.Bounds().Dx() > width {
 			width = img1.Bounds().Dx()
@@ -377,6 +390,10 @@ func IsWatermark(inputFile string) (exists bool) {
 
 func BatchMaxImageWidthHeight(dirName string) {
 	files := GetFiles(dirName)
+	if len(files) <= 1 {
+		return
+	}
+
 	x, y := GetMaxWidthHeight(files)
 	for _, tempFile := range files {
 		MaxImageWidthHeight(x, y, tempFile)
