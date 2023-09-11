@@ -124,6 +124,14 @@ func GetMaxWidthHeight(files []string) (width int, height int) {
 		}
 	}
 
+	// 图片宽、高必须是偶数
+	if width%2 != 0 {
+		width--
+	}
+	if height%2 != 0 {
+		height--
+	}
+
 	return
 }
 
@@ -193,6 +201,9 @@ func AuthThumbnail(inputFile string, outputFile string) {
 
 	maxWidth := 1920
 	maxHeight := 1920
+
+	maxWidth = 4096
+	maxHeight = 3112
 	m := resize.Thumbnail(uint(maxWidth), uint(maxHeight), img1, resize.Lanczos2)
 
 	out, err := os.Create(outputFile)
