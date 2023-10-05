@@ -89,6 +89,13 @@ func SerialRename(files []string) {
 	return
 }
 
+func ReplaceSpace(filenameOld string) (filenameNew string, err error) {
+	filenameNew = strings.ReplaceAll(filenameOld, " ", "-")
+	err = os.Rename(filenameOld, filenameNew)
+
+	return
+}
+
 func Exists(path string) bool {
 	_, err := os.Stat(path)
 

@@ -329,6 +329,12 @@ func getDetailPageImgList(detailPage string) (imgList []string) {
 }
 
 func Unrar(input string, output string) {
+	input, err := file.ReplaceSpace(input)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
 	unrar.Command(input, output)
 
 	files := file.GetFiles(output)
