@@ -74,6 +74,27 @@ func AddAudio2Video(inputVideo string, inputAudio string, output string) {
 	fmt.Println(string(msg))
 }
 
+func Audio2Video(inputImg string, inputAudio string, outputVideo string) {
+	command := "ffmpeg -loop 1 -i '" + inputImg + "' -i '" + inputAudio + "' -c:a copy -c:v libx264 -shortest '" + outputVideo + "'"
+
+	var msg []byte
+	var err error
+	switch runtime.GOOS {
+	case "windows":
+		msg, err = exec.Command("powershell", command).Output()
+	case "linux":
+		msg, err = exec.Command("/bin/sh", "-c", command).Output()
+	default:
+		log.Fatalln("I don't support other os")
+	}
+	if err != nil {
+		fmt.Println(err, command)
+		return
+	}
+
+	fmt.Println(string(msg))
+}
+
 func ConcatVideo2Video(inputVideoDir string, outputVideoFile string) (err error) {
 	if outputVideoFile == "" {
 		outputVideoBase := filepath.Base(inputVideoDir)

@@ -35,6 +35,14 @@ func TestAddAudio2Video(t *testing.T) {
 	ffmpeg.AddAudio2Video(inputVideo, inputAudio, output)
 }
 
+// go test -v pkg/ffmpeg/ffmpeg_test.go -run TestAudio2Video
+func TestAudio2Video(t *testing.T) {
+	inputImg := `D:\Download\novel\让你模拟作案，你上演完美犯罪？\banner.jpg`
+	inputAudio := `D:\Download\第100章 腐烂的脸.mp3`
+	outputVideo := `D:\Download\第100章 腐烂的脸.mp4`
+	ffmpeg.Audio2Video(inputImg, inputAudio, outputVideo)
+}
+
 func TestConcatVideo2Video(t *testing.T) {
 	inputVideo := "../../images/test/coser@白银81 纯白圣女"
 	outputVideo := ""
